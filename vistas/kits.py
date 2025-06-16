@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QTableWidget,
-    QTableWidgetItem, QHeaderView, QDialog, QFormLayout, QLineEdit, QComboBox, QSpinBox, QMessageBox
+    QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout,
+    QTableWidgetItem, QHeaderView, QDialog, QFormLayout, QLineEdit, QComboBox, QSpinBox, QMessageBox, QTableWidget
 )
 from modelos.kits import (
     obtener_kits, agregar_kit, editar_kit, eliminar_kit,
@@ -65,13 +65,15 @@ class KitsWidget(QWidget):
         btns.addWidget(self.btn_eliminar)
         layout.addLayout(btns)
 
+        self.kits_todos = []
+
         self.tabla = TablaEstilizada(0, 2)
         self.tabla.setHorizontalHeaderLabels(["ID", "Nombre"])
         self.tabla.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         layout.addWidget(self.tabla)
 
         # Tabla para las piezas del kit
-        self.tabla_piezas = QTableWidget(0, 3)
+        self.tabla_piezas = TablaEstilizada(0, 3)
         self.tabla_piezas.setHorizontalHeaderLabels(["ID Pieza", "Nombre Pieza", "Cantidad"])
         self.tabla_piezas.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         layout.addWidget(QLabel("Piezas del kit seleccionado:"))
@@ -91,14 +93,17 @@ class KitsWidget(QWidget):
         self.tabla.currentCellChanged.connect(lambda *_: self.cargar_piezas_kit())
 
     def cargar_kits(self):
+        self.kits_todos = obtener_kits()
+        self.mostrar_kits(self.kits_todos)
+        self.tabla_piezas.setRowCount(0)
+
+    def mostrar_kits(self, kits):
         self.tabla.setRowCount(0)
-        kits = obtener_kits()
         for kit in kits:
             row_pos = self.tabla.rowCount()
             self.tabla.insertRow(row_pos)
             self.tabla.setItem(row_pos, 0, QTableWidgetItem(str(kit["id"])))
             self.tabla.setItem(row_pos, 1, QTableWidgetItem(kit["nombre"]))
-        self.tabla_piezas.setRowCount(0)
 
     def alta_kit(self):
         dlg = QDialog(self)
@@ -118,13 +123,14 @@ class KitsWidget(QWidget):
         if dlg.exec():
             nombre = input_nombre.text().strip()
             if not nombre:
-                QMessageBox.warning(self, "Campo obligatorio", "El nombre es obligatorio.")
+                QMessageBox.warning(self, "Campo obligatorio", "El nombre del kit es obligatorio.")
                 return
             ok, err = agregar_kit(nombre)
             if ok:
                 self.cargar_kits()
+                QMessageBox.information(self, "Éxito", "El kit fue registrado correctamente.")
             else:
-                QMessageBox.critical(self, "Error", f"No se pudo agregar el kit.\nDetalles: {err}")
+                QMessageBox.critical(self, "Error", f"No se pudo registrar el kit.\nDetalles: {err}")
 
     def editar_kit(self):
         row = self.tabla.currentRow()
@@ -218,3 +224,11 @@ class KitsWidget(QWidget):
                 self.cargar_piezas_kit()
             else:
                 QMessageBox.critical(self, "Error", f"No se pudo eliminar la pieza del kit.\nDetalles: {err}")
+
+    def filtrar(self, texto):
+        texto = texto.lower()
+        kits_filtrados = [
+            k for k in self.kits_todos
+            if texto in k["nombre"].lower()
+        ]
+        self.mostrar_kits(kits_filtrados)

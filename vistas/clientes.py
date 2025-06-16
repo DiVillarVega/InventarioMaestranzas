@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QTableWidget,
+    QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout,
     QTableWidgetItem, QHeaderView, QDialog, QFormLayout, QLineEdit, QMessageBox
 )
 from modelos.clientes import (
@@ -67,6 +67,8 @@ class ClientesWidget(QWidget):
         btns.addWidget(self.btn_eliminar)
         layout.addLayout(btns)
 
+        self.clientes_todos = []
+
         self.tabla = TablaEstilizada(0, 3)
         self.tabla.setHorizontalHeaderLabels(["ID", "Correo", "Nombre"])
         self.tabla.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
@@ -76,8 +78,11 @@ class ClientesWidget(QWidget):
         self.cargar_clientes()
 
     def cargar_clientes(self):
+        self.clientes_todos = obtener_clientes()
+        self.mostrar_clientes(self.clientes_todos)
+
+    def mostrar_clientes(self, clientes):
         self.tabla.setRowCount(0)
-        clientes = obtener_clientes()
         for cliente in clientes:
             row_pos = self.tabla.rowCount()
             self.tabla.insertRow(row_pos)
@@ -155,3 +160,12 @@ class ClientesWidget(QWidget):
                 self.cargar_clientes()
             else:
                 QMessageBox.critical(self, "Error", f"No se pudo eliminar el cliente.\nDetalles: {err}")
+
+    def filtrar(self, texto):
+        texto = texto.lower()
+        clientes_filtrados = [
+            c for c in self.clientes_todos
+            if texto in c["correo"].lower()
+            or texto in c["nombre"].lower()
+        ]
+        self.mostrar_clientes(clientes_filtrados)

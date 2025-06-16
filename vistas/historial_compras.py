@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QTableWidget,
+    QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout,
     QTableWidgetItem, QHeaderView, QDialog, QFormLayout, QComboBox, QDoubleSpinBox, QDateEdit, QMessageBox
 )
 from modelos.historial_compras import obtener_historial_compras, agregar_compra, eliminar_compra
@@ -74,6 +74,8 @@ class HistorialComprasWidget(QWidget):
         btns.addWidget(self.btn_eliminar)
         layout.addLayout(btns)
 
+        self.compras_todas = []
+
         self.tabla = TablaEstilizada(0, 5)
         self.tabla.setHorizontalHeaderLabels([
             "ID", "Pieza", "Proveedor", "Precio", "Fecha"
@@ -85,8 +87,11 @@ class HistorialComprasWidget(QWidget):
         self.cargar_historial()
 
     def cargar_historial(self):
+        self.compras_todas = obtener_historial_compras()
+        self.mostrar_historial(self.compras_todas)
+
+    def mostrar_historial(self, compras):
         self.tabla.setRowCount(0)
-        compras = obtener_historial_compras()
         for c in compras:
             row_pos = self.tabla.rowCount()
             self.tabla.insertRow(row_pos)
@@ -119,3 +124,14 @@ class HistorialComprasWidget(QWidget):
                 self.cargar_historial()
             else:
                 QMessageBox.critical(self, "Error", f"No se pudo eliminar la compra.\nDetalles: {err}")
+
+    def filtrar(self, texto):
+        texto = texto.lower()
+        compras_filtradas = [
+            c for c in self.compras_todas
+            if texto in (c["pieza"] or "").lower()
+            or texto in (c["proveedor"] or "").lower()
+            or texto in str(c["precio"])
+            or texto in (c["fecha"] or "").lower()
+        ]
+        self.mostrar_historial(compras_filtradas)

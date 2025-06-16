@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QTableWidget,
-    QTableWidgetItem, QHeaderView, QDialog, QFormLayout, QLineEdit, QMessageBox
+    QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QTableWidgetItem,
+    QHeaderView, QDialog, QFormLayout, QLineEdit, QMessageBox
 )
 from modelos.etiquetas import (
     obtener_etiquetas, agregar_etiqueta, editar_etiqueta, eliminar_etiqueta
@@ -49,6 +49,8 @@ class EtiquetasWidget(QWidget):
         btns.addWidget(self.btn_eliminar)
         layout.addLayout(btns)
 
+        self.etiquetas_todas = []
+
         self.tabla = TablaEstilizada(0, 2)
         self.tabla.setHorizontalHeaderLabels(["ID", "Nombre"])
         self.tabla.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
@@ -58,8 +60,11 @@ class EtiquetasWidget(QWidget):
         self.cargar_etiquetas()
 
     def cargar_etiquetas(self):
+        self.etiquetas_todas = obtener_etiquetas()
+        self.mostrar_etiquetas(self.etiquetas_todas)
+
+    def mostrar_etiquetas(self, etiquetas):
         self.tabla.setRowCount(0)
-        etiquetas = obtener_etiquetas()
         for etiqueta in etiquetas:
             row_pos = self.tabla.rowCount()
             self.tabla.insertRow(row_pos)
@@ -111,3 +116,11 @@ class EtiquetasWidget(QWidget):
                 self.cargar_etiquetas()
             else:
                 QMessageBox.critical(self, "Error", f"No se pudo eliminar la etiqueta.\nDetalles: {err}")
+                
+    def filtrar(self, texto):
+        texto = texto.lower()
+        etiquetas_filtradas = [
+            e for e in self.etiquetas_todas
+            if texto in e["nombre"].lower()
+        ]
+        self.mostrar_etiquetas(etiquetas_filtradas)

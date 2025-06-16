@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QTableWidget,
-    QTableWidgetItem, QHeaderView, QDialog, QFormLayout, QLineEdit, QMessageBox, QComboBox
+    QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QTableWidgetItem,
+    QHeaderView, QDialog, QFormLayout, QLineEdit, QMessageBox, QComboBox
 )
 from modelos.usuarios import (
     obtener_usuarios, agregar_usuario, editar_usuario, eliminar_usuario, cambiar_password
@@ -82,6 +82,8 @@ class UsuariosWidget(QWidget):
         btns.addWidget(self.btn_eliminar)
         layout.addLayout(btns)
 
+        self.usuarios_todos = []
+
         self.tabla = TablaEstilizada(0, 4)
         self.tabla.setHorizontalHeaderLabels(["ID", "Correo", "Nombre", "Rol"])
         self.tabla.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
@@ -91,8 +93,11 @@ class UsuariosWidget(QWidget):
         self.cargar_usuarios()
 
     def cargar_usuarios(self):
+        self.usuarios_todos = obtener_usuarios()
+        self.mostrar_usuarios(self.usuarios_todos)
+
+    def mostrar_usuarios(self, usuarios):
         self.tabla.setRowCount(0)
-        usuarios = obtener_usuarios()
         for usuario in usuarios:
             row_pos = self.tabla.rowCount()
             self.tabla.insertRow(row_pos)
@@ -173,3 +178,13 @@ class UsuariosWidget(QWidget):
                 self.cargar_usuarios()
             else:
                 QMessageBox.critical(self, "Error", f"No se pudo eliminar el usuario.\nDetalles: {err}")
+                
+    def filtrar(self, texto):
+        texto = texto.lower()
+        usuarios_filtrados = [
+            u for u in self.usuarios_todos
+            if texto in u["correo"].lower()
+            or texto in u["nombre"].lower()
+            or texto in u["rol"].lower()
+        ]
+        self.mostrar_usuarios(usuarios_filtrados)

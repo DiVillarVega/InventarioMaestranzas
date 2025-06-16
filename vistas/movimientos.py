@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout,
-    QTableWidget, QTableWidgetItem, QHeaderView, QDialog, QFormLayout, QComboBox, QSpinBox, QTextEdit, QMessageBox
+    QTableWidgetItem, QHeaderView, QDialog, QFormLayout, QComboBox, QSpinBox, QTextEdit, QMessageBox
 )
 from modelos.movimientos import (
     obtener_movimientos, registrar_movimiento, obtener_piezas_id_nombre, obtener_stock_actual
@@ -97,6 +97,8 @@ class MovimientosWidget(QWidget):
         self.btn_nuevo.clicked.connect(self.alta_movimiento)
         layout.addWidget(self.btn_nuevo)
 
+        self.movimientos_todos = []
+
         self.tabla = TablaEstilizada(0, 6)
         self.tabla.setHorizontalHeaderLabels(["ID", "Pieza", "Tipo", "Cantidad", "Fecha", "Usuario"])
         self.tabla.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
@@ -106,8 +108,11 @@ class MovimientosWidget(QWidget):
         self.cargar_movimientos()
 
     def cargar_movimientos(self):
+        self.movimientos_todos = obtener_movimientos()
+        self.mostrar_movimientos(self.movimientos_todos)
+
+    def mostrar_movimientos(self, movimientos):
         self.tabla.setRowCount(0)
-        movimientos = obtener_movimientos()
         for mov in movimientos:
             row_pos = self.tabla.rowCount()
             self.tabla.insertRow(row_pos)
@@ -125,3 +130,16 @@ class MovimientosWidget(QWidget):
             pieza_id, tipo, cantidad, user_id, obs = dlg.datos()
             registrar_movimiento(pieza_id, tipo, cantidad, user_id, obs)
             self.cargar_movimientos()
+
+    def filtrar(self, texto):
+        texto = texto.lower()
+        movs_filtrados = [
+            m for m in self.movimientos_todos
+            if texto in m["pieza"].lower()
+            or texto in m["tipo"].lower()
+            or texto in (m["usuario"] or "").lower()
+            or texto in str(m["cantidad"])
+            or texto in str(m["fecha"])
+            or texto in (m.get("observacion", "") or "").lower()
+        ]
+        self.mostrar_movimientos(movs_filtrados)

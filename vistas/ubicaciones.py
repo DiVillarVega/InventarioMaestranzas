@@ -1,6 +1,6 @@
-from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QTableWidget,
-    QTableWidgetItem, QHeaderView, QDialog, QFormLayout, QLineEdit, QMessageBox
+from PyQt6.QtWidgets import ( 
+    QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QTableWidgetItem, 
+    QHeaderView, QDialog, QFormLayout, QLineEdit, QMessageBox
 )
 from modelos.ubicaciones import (
     obtener_ubicaciones, agregar_ubicacion, editar_ubicacion, eliminar_ubicacion
@@ -49,6 +49,8 @@ class UbicacionesWidget(QWidget):
         btns.addWidget(self.btn_eliminar)
         layout.addLayout(btns)
 
+        self.ubicaciones_todas = []
+
         self.tabla = TablaEstilizada(0, 2)
         self.tabla.setHorizontalHeaderLabels(["ID", "Nombre"])
         self.tabla.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
@@ -58,8 +60,11 @@ class UbicacionesWidget(QWidget):
         self.cargar_ubicaciones()
 
     def cargar_ubicaciones(self):
+        self.ubicaciones_todas = obtener_ubicaciones()
+        self.mostrar_ubicaciones(self.ubicaciones_todas)
+
+    def mostrar_ubicaciones(self, ubicaciones):
         self.tabla.setRowCount(0)
-        ubicaciones = obtener_ubicaciones()
         for ubicacion in ubicaciones:
             row_pos = self.tabla.rowCount()
             self.tabla.insertRow(row_pos)
@@ -111,3 +116,11 @@ class UbicacionesWidget(QWidget):
                 self.cargar_ubicaciones()
             else:
                 QMessageBox.critical(self, "Error", f"No se pudo eliminar la ubicación.\nDetalles: {err}")
+
+    def filtrar(self, texto):
+        texto = texto.lower()
+        ubicaciones_filtradas = [
+            u for u in self.ubicaciones_todas
+            if texto in u["nombre"].lower()
+        ]
+        self.mostrar_ubicaciones(ubicaciones_filtradas)

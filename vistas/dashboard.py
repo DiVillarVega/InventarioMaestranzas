@@ -41,13 +41,14 @@ class DashboardWindow(QWidget):
         label_logo.setStyleSheet(f"font-size: 23px; font-weight: bold; font-family: {FUENTE}; color: #16202B;")
         barra_layout.addWidget(label_logo)
         barra_layout.addStretch()
-        busqueda = QLineEdit()
-        busqueda.setPlaceholderText("Buscar...")
-        busqueda.setFixedWidth(280)
-        busqueda.setStyleSheet(
+        self.busqueda = QLineEdit()
+        self.busqueda.setPlaceholderText("Buscar...")
+        self.busqueda.setFixedWidth(280)
+        self.busqueda.setStyleSheet(
             f"background: white; border-radius: 7px; padding: 10px 16px; font-family: {FUENTE}; font-size: 16px;"
         )
-        barra_layout.addWidget(busqueda)
+        self.busqueda.textChanged.connect(self.buscar_en_modulo_actual)
+        barra_layout.addWidget(self.busqueda)
 
         # Menú lateral (gris claro)
         menu = QListWidget()
@@ -167,5 +168,15 @@ class DashboardWindow(QWidget):
 
         self.setLayout(main_layout)
 
+    def buscar_en_modulo_actual(self, texto):
+        # Determina el widget actual en el stack
+        widget_actual = self.stack.currentWidget()
+        # Si el widget tiene método filtrar, lo llama
+        if hasattr(widget_actual, "filtrar"):
+            widget_actual.filtrar(texto)
+    
     def cambiar_modulo(self, idx):
         self.stack.setCurrentIndex(idx)
+        self.busqueda.setText("")  # Limpia el buscador al cambiar ventana
+
+

@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout,
-    QTableWidget, QTableWidgetItem, QHeaderView, QLineEdit, QDialog, QFormLayout, QSpinBox, QMessageBox
+    QTableWidgetItem, QHeaderView, QLineEdit, QDialog, QFormLayout, QSpinBox, QMessageBox
 )
 from modelos.piezas import obtener_todas_piezas, agregar_pieza, editar_pieza, eliminar_pieza
 from vistas.tabla_estilizada import TablaEstilizada
@@ -80,17 +80,24 @@ class PiezasWidget(QWidget):
 
         layout.addLayout(btns)
 
+        # Inicializa la lista para el filtro
+        self.piezas_todas = []
+
+        # Tabla estilizada
         self.tabla = TablaEstilizada(0, 6)
         self.tabla.setHorizontalHeaderLabels(["ID", "Código", "Nombre", "Descripción", "Stock", "Ubicación"])
         self.tabla.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         layout.addWidget(self.tabla)
-
+        
         self.setLayout(layout)
         self.cargar_piezas()
 
     def cargar_piezas(self):
+        self.piezas_todas = obtener_todas_piezas()
+        self.mostrar_piezas(self.piezas_todas)
+
+    def mostrar_piezas(self, piezas):
         self.tabla.setRowCount(0)
-        piezas = obtener_todas_piezas()
         for pieza in piezas:
             row_pos = self.tabla.rowCount()
             self.tabla.insertRow(row_pos)
@@ -105,8 +112,12 @@ class PiezasWidget(QWidget):
         dlg = AltaPiezaDialog(self)
         if dlg.exec():
             codigo, nombre, desc, stock, ubicacion = dlg.datos()
-            agregar_pieza(codigo, nombre, desc, stock, ubicacion)
-            self.cargar_piezas()
+            ok, err = agregar_pieza(codigo, nombre, desc, stock, ubicacion)
+            if ok:
+                self.cargar_piezas()
+                QMessageBox.information(self, "Éxito", "La pieza fue registrada correctamente.")
+            else:
+                QMessageBox.critical(self, "Error", f"No se pudo registrar la pieza.\nDetalles: {err}")
 
     def editar_pieza(self):
         row = self.tabla.currentRow()
@@ -137,3 +148,14 @@ class PiezasWidget(QWidget):
         if r == QMessageBox.StandardButton.Yes:
             eliminar_pieza(pieza_id)
             self.cargar_piezas()
+
+    def filtrar(self, texto):
+        texto = texto.lower()
+        piezas_filtradas = [
+            p for p in self.piezas_todas
+            if texto in p["codigo"].lower()
+            or texto in p["nombre"].lower()
+            or texto in (p["descripcion"] or "").lower()
+            or texto in (p["ubicacion"] or "").lower()
+        ]
+        self.mostrar_piezas(piezas_filtradas)

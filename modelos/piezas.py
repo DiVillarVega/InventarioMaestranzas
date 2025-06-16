@@ -23,16 +23,24 @@ def obtener_todas_piezas():
         conn.close()
     return piezas
 
-def agregar_pieza(codigo, nombre, descripcion, stock, ubicacion):
+def agregar_pieza(codigo, nombre, desc, stock, ubicacion):
     conn = get_connection()
     if conn:
-        cur = conn.cursor()
-        cur.execute("""
-            INSERT INTO piezas (codigo, nombre, descripcion, stock_actual, ubicacion)
-            VALUES (%s, %s, %s, %s, %s)
-        """, (codigo, nombre, descripcion, stock, ubicacion))
-        conn.commit()
-        conn.close()
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                "INSERT INTO piezas (codigo, nombre, descripcion, stock_actual, ubicacion) VALUES (%s, %s, %s, %s, %s)",
+                (codigo, nombre, desc, stock, ubicacion)
+            )
+            conn.commit()
+            conn.close()
+            return True, ""
+        except Exception as e:
+            conn.rollback()
+            conn.close()
+            return False, str(e)
+    return False, "No se pudo conectar a la base de datos"
+
 
 def editar_pieza(id_pieza, codigo, nombre, descripcion, stock, ubicacion):
     conn = get_connection()

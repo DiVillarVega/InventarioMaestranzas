@@ -1,9 +1,10 @@
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QTableWidget,
-    QTableWidgetItem, QHeaderView, QDialog, QFormLayout, QLineEdit, QMessageBox
+    QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QTableWidgetItem,
+    QHeaderView, QDialog, QFormLayout, QLineEdit, QMessageBox
 )
 from modelos.respaldos import obtener_respaldos, agregar_respaldo, eliminar_respaldo
 from vistas.tabla_estilizada import TablaEstilizada
+
 class AltaRespaldoDialog(QDialog):
     def __init__(self, user_id, parent=None):
         super().__init__(parent)
@@ -46,6 +47,8 @@ class RespaldosWidget(QWidget):
         btns.addWidget(self.btn_eliminar)
         layout.addLayout(btns)
 
+        self.respaldos_todos = []
+
         self.tabla = TablaEstilizada(0, 4)
         self.tabla.setHorizontalHeaderLabels([
             "ID", "Fecha", "Realizado por", "Ruta archivo"
@@ -57,8 +60,11 @@ class RespaldosWidget(QWidget):
         self.cargar_respaldos()
 
     def cargar_respaldos(self):
+        self.respaldos_todos = obtener_respaldos()
+        self.mostrar_respaldos(self.respaldos_todos)
+
+    def mostrar_respaldos(self, respaldos):
         self.tabla.setRowCount(0)
-        respaldos = obtener_respaldos()
         for r in respaldos:
             row_pos = self.tabla.rowCount()
             self.tabla.insertRow(row_pos)
@@ -93,3 +99,13 @@ class RespaldosWidget(QWidget):
                 self.cargar_respaldos()
             else:
                 QMessageBox.critical(self, "Error", f"No se pudo eliminar el respaldo.\nDetalles: {err}")
+    
+    def filtrar(self, texto):
+        texto = texto.lower()
+        respaldos_filtrados = [
+            r for r in self.respaldos_todos
+            if texto in (r["fecha"] or "").lower()
+            or texto in (r["realizado_por"] or "").lower()
+            or texto in (r["ruta_archivo"] or "").lower()
+        ]
+        self.mostrar_respaldos(respaldos_filtrados)

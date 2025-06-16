@@ -1,6 +1,6 @@
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QTableWidget,
-    QTableWidgetItem, QHeaderView, QDialog, QFormLayout, QLineEdit, QMessageBox
+    QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QTableWidgetItem,
+    QHeaderView, QDialog, QFormLayout, QLineEdit, QMessageBox
 )
 from modelos.categorias import (
     obtener_categorias, agregar_categoria, editar_categoria, eliminar_categoria
@@ -49,6 +49,8 @@ class CategoriasWidget(QWidget):
         btns.addWidget(self.btn_eliminar)
         layout.addLayout(btns)
 
+        self.categorias_todas = []
+
         self.tabla = TablaEstilizada(0, 2)
         self.tabla.setHorizontalHeaderLabels(["ID", "Nombre"])
         self.tabla.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
@@ -58,8 +60,11 @@ class CategoriasWidget(QWidget):
         self.cargar_categorias()
 
     def cargar_categorias(self):
+        self.categorias_todas = obtener_categorias()
+        self.mostrar_categorias(self.categorias_todas)
+
+    def mostrar_categorias(self, categorias):
         self.tabla.setRowCount(0)
-        categorias = obtener_categorias()
         for categoria in categorias:
             row_pos = self.tabla.rowCount()
             self.tabla.insertRow(row_pos)
@@ -111,3 +116,11 @@ class CategoriasWidget(QWidget):
                 self.cargar_categorias()
             else:
                 QMessageBox.critical(self, "Error", f"No se pudo eliminar la categoría.\nDetalles: {err}")
+
+    def filtrar(self, texto):
+        texto = texto.lower()
+        categorias_filtradas = [
+            c for c in self.categorias_todas
+            if texto in c["nombre"].lower()
+        ]
+        self.mostrar_categorias(categorias_filtradas)

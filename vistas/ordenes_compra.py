@@ -1,6 +1,6 @@
-from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QTableWidget,
-    QTableWidgetItem, QHeaderView, QDialog, QFormLayout, QComboBox, QMessageBox
+from PyQt6.QtWidgets import ( 
+    QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QTableWidgetItem, 
+    QHeaderView, QDialog, QFormLayout, QComboBox, QMessageBox
 )
 from modelos.ordenes_compra import obtener_ordenes, agregar_orden, editar_estado_orden, eliminar_orden
 from vistas.tabla_estilizada import TablaEstilizada
@@ -26,6 +26,8 @@ class OrdenesCompraWidget(QWidget):
         btns.addWidget(self.btn_eliminar)
         layout.addLayout(btns)
 
+        self.ordenes_todas = []
+
         self.tabla = TablaEstilizada(0, 6)
         self.tabla.setHorizontalHeaderLabels([
             "ID", "Cliente", "Proveedor", "Fecha", "Estado", "Creado por"
@@ -37,8 +39,11 @@ class OrdenesCompraWidget(QWidget):
         self.cargar_ordenes()
 
     def cargar_ordenes(self):
+        self.ordenes_todas = obtener_ordenes()
+        self.mostrar_ordenes(self.ordenes_todas)
+
+    def mostrar_ordenes(self, ordenes):
         self.tabla.setRowCount(0)
-        ordenes = obtener_ordenes()
         for o in ordenes:
             row_pos = self.tabla.rowCount()
             self.tabla.insertRow(row_pos)
@@ -66,3 +71,16 @@ class OrdenesCompraWidget(QWidget):
                 self.cargar_ordenes()
             else:
                 QMessageBox.critical(self, "Error", f"No se pudo eliminar la orden.\nDetalles: {err}")
+                
+    def filtrar(self, texto):
+        texto = texto.lower()
+        ordenes_filtradas = [
+            o for o in self.ordenes_todas
+            if texto in str(o["id"])
+            or texto in (o["cliente"] or "").lower()
+            or texto in (o["proveedor"] or "").lower()
+            or texto in (o["fecha"] or "").lower()
+            or texto in (o["estado"] or "").lower()
+            or texto in (o["creado_por"] or "").lower()
+        ]
+        self.mostrar_ordenes(ordenes_filtradas)

@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QTableWidget,
+    QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout,
     QTableWidgetItem, QHeaderView, QDialog, QFormLayout, QComboBox, QSpinBox,
     QDateEdit, QMessageBox, QLineEdit
 )
@@ -112,6 +112,8 @@ class LotesWidget(QWidget):
         btns.addWidget(self.btn_eliminar)
         layout.addLayout(btns)
 
+        self.lotes_todos = []
+
         self.tabla = TablaEstilizada(0, 5)
         self.tabla.setHorizontalHeaderLabels(["ID", "Pieza", "Código lote", "Vencimiento", "Cantidad"])
         self.tabla.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
@@ -121,8 +123,11 @@ class LotesWidget(QWidget):
         self.cargar_lotes()
 
     def cargar_lotes(self):
+        self.lotes_todos = obtener_lotes()
+        self.mostrar_lotes(self.lotes_todos)
+
+    def mostrar_lotes(self, lotes):
         self.tabla.setRowCount(0)
-        lotes = obtener_lotes()
         for lote in lotes:
             row_pos = self.tabla.rowCount()
             self.tabla.insertRow(row_pos)
@@ -167,3 +172,14 @@ class LotesWidget(QWidget):
         if r == QMessageBox.StandardButton.Yes:
             eliminar_lote(lote_id)
             self.cargar_lotes()
+            
+    def filtrar(self, texto):
+        texto = texto.lower()
+        lotes_filtrados = [
+            l for l in self.lotes_todos
+            if texto in l["codigo"].lower()
+            or texto in l["pieza"].lower()
+            or texto in str(l["cantidad"])
+            or texto in (l["vencimiento"] or "").lower()
+        ]
+        self.mostrar_lotes(lotes_filtrados)

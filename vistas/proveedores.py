@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout, QTableWidget,
+    QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout,
     QTableWidgetItem, QHeaderView, QDialog, QFormLayout, QLineEdit, QMessageBox
 )
 from modelos.proveedores import (
@@ -75,6 +75,8 @@ class ProveedoresWidget(QWidget):
         btns.addWidget(self.btn_eliminar)
         layout.addLayout(btns)
 
+        self.proveedores_todos = []
+
         self.tabla = TablaEstilizada(0, 9)
         self.tabla.setHorizontalHeaderLabels([
             "ID", "Nombre", "Razón social", "RUT", "Dirección",
@@ -87,8 +89,11 @@ class ProveedoresWidget(QWidget):
         self.cargar_proveedores()
 
     def cargar_proveedores(self):
+        self.proveedores_todos = obtener_proveedores()
+        self.mostrar_proveedores(self.proveedores_todos)
+
+    def mostrar_proveedores(self, proveedores):
         self.tabla.setRowCount(0)
-        proveedores = obtener_proveedores()
         for p in proveedores:
             row_pos = self.tabla.rowCount()
             self.tabla.insertRow(row_pos)
@@ -156,3 +161,18 @@ class ProveedoresWidget(QWidget):
                 self.cargar_proveedores()
             else:
                 QMessageBox.critical(self, "Error", f"No se pudo eliminar el proveedor.\nDetalles: {err}")
+                
+    def filtrar(self, texto):
+        texto = texto.lower()
+        proveedores_filtrados = [
+            p for p in self.proveedores_todos
+            if texto in p["nombre"].lower()
+            or texto in (p["razon_social"] or "").lower()
+            or texto in (p["rut"] or "").lower()
+            or texto in (p["direccion"] or "").lower()
+            or texto in (p["telefono"] or "").lower()
+            or texto in (p["correo"] or "").lower()
+            or texto in (p["productos"] or "").lower()
+            or texto in (p["condiciones_pago"] or "").lower()
+        ]
+        self.mostrar_proveedores(proveedores_filtrados)

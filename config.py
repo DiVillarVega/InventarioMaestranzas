@@ -35,7 +35,7 @@ ROLES_PANTALLAS = {
     'auditor':          ['dashboard', 'movimientos'],
 }
 
-AUTOLOGIN = False # Cambia a False si no quieres autologin
+AUTOLOGIN = True # Cambia a False si no quieres autologin
 AUTOLOGIN_USER = {
     "correo": "admin@maestranzas.cl",
     "password": "admin123"
