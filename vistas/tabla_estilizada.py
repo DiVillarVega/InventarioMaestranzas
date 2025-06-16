@@ -25,3 +25,4 @@ class TablaEstilizada(QTableWidget):
                 background-color: #F7B500;
             }
         """)
+        self.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)  # <-- ESTA LÍNEA HACE TODAS LAS CELDAS NO EDITABLES

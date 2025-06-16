@@ -59,12 +59,15 @@ class LoginWindow(QWidget):
         self.setLayout(main_layout)
 
     def autenticar(self):
-        email = self.input_email.text()
+        email = self.input_email.text().strip().lower()
         pwd = self.input_pass.text()
         conn = get_connection()
         if conn:
             cur = conn.cursor()
-            cur.execute("SELECT id, nombre, rol FROM trabajadores WHERE correo=%s AND password=%s", (email, pwd))
+            cur.execute(
+            "SELECT id, nombre, rol FROM trabajadores WHERE LOWER(correo)=%s AND password=%s",
+            (email, pwd)
+            )
             usuario = cur.fetchone()
             conn.close()
             if usuario:

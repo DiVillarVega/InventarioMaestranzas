@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QListWidget, QFrame, QLineEdit, QStackedWidget
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QListWidget, QFrame, QLineEdit, QStackedWidget, QPushButton
 )
 from PyQt6.QtCore import Qt
 from estilos import COLOR_BARRA, COLOR_FONDO, COLOR_MENU, FUENTE
@@ -158,6 +158,13 @@ class DashboardWindow(QWidget):
         menu_layout.setSpacing(0)
         # Opcional: añade perfil, avatar o datos usuario aquí arriba del menú si tu mockup lo tiene
         menu_layout.addWidget(menu)
+        # ---- Botón de cerrar sesión ----
+        self.btn_logout = QPushButton("Cerrar sesión")
+        self.btn_logout.setStyleSheet(
+            "background-color: #FF5252; color: white; font-weight: bold; padding: 12px; border-radius: 7px; font-size: 16px; margin: 24px 20px 8px 20px;"
+        )
+        self.btn_logout.clicked.connect(self.logout)
+        menu_layout.addWidget(self.btn_logout)
         menu_layout.addStretch()
         menu_frame.setStyleSheet(f"background: {COLOR_MENU}; border-right: 2px solid #e0e0e0;")
         body_layout.addWidget(menu_frame)
@@ -178,5 +185,12 @@ class DashboardWindow(QWidget):
     def cambiar_modulo(self, idx):
         self.stack.setCurrentIndex(idx)
         self.busqueda.setText("")  # Limpia el buscador al cambiar ventana
+
+    def logout(self):
+        from vistas.login import LoginWindow  # Importa aquí para evitar dependencias circulares
+        self.close()
+        self.login_window = LoginWindow()
+        self.login_window.show()
+
 
 

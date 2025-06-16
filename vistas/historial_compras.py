@@ -76,9 +76,9 @@ class HistorialComprasWidget(QWidget):
 
         self.compras_todas = []
 
-        self.tabla = TablaEstilizada(0, 5)
+        self.tabla = TablaEstilizada(0, 6)
         self.tabla.setHorizontalHeaderLabels([
-            "ID", "Pieza", "Proveedor", "Precio", "Fecha"
+            "ID", "Pieza", "Proveedor", "Precio", "Fecha", "Observaciones"
         ])
         self.tabla.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         layout.addWidget(self.tabla)
@@ -100,6 +100,8 @@ class HistorialComprasWidget(QWidget):
             self.tabla.setItem(row_pos, 2, QTableWidgetItem(c["proveedor"]))
             self.tabla.setItem(row_pos, 3, QTableWidgetItem(f"{c['precio']:.2f}"))
             self.tabla.setItem(row_pos, 4, QTableWidgetItem(c["fecha"]))
+            self.tabla.setItem(row_pos, 5, QTableWidgetItem(c.get("observaciones", "") or ""))
+
 
     def alta_compra(self):
         dlg = AltaCompraDialog(self)
@@ -133,5 +135,6 @@ class HistorialComprasWidget(QWidget):
             or texto in (c["proveedor"] or "").lower()
             or texto in str(c["precio"])
             or texto in (c["fecha"] or "").lower()
+            or texto in (c.get("observaciones", "") or "").lower()
         ]
         self.mostrar_historial(compras_filtradas)

@@ -112,12 +112,16 @@ class PiezasWidget(QWidget):
         dlg = AltaPiezaDialog(self)
         if dlg.exec():
             codigo, nombre, desc, stock, ubicacion = dlg.datos()
+            if not codigo or not nombre or stock is None:
+                QMessageBox.warning(self, "Campos obligatorios", "Código, nombre y stock son obligatorios.")
+                return
             ok, err = agregar_pieza(codigo, nombre, desc, stock, ubicacion)
             if ok:
                 self.cargar_piezas()
                 QMessageBox.information(self, "Éxito", "La pieza fue registrada correctamente.")
             else:
                 QMessageBox.critical(self, "Error", f"No se pudo registrar la pieza.\nDetalles: {err}")
+
 
     def editar_pieza(self):
         row = self.tabla.currentRow()
