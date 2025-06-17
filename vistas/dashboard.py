@@ -1,9 +1,16 @@
 from PyQt6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QListWidget, QFrame, QLineEdit, QStackedWidget, QPushButton
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QListWidget, QFrame,
+    QLineEdit, QStackedWidget, QPushButton, QSizePolicy, QSpacerItem,
+    QListWidgetItem
 )
-from PyQt6.QtCore import Qt
-from estilos import COLOR_BARRA, COLOR_FONDO, COLOR_MENU, FUENTE
-from config import ROLES_PANTALLAS
+from PyQt6.QtCore import Qt, QSize, QRectF
+from PyQt6.QtGui import QIcon, QColor, QFont, QPixmap, QPainter
+from PyQt6.QtSvg import QSvgRenderer
+
+import os
+
+from estilos import COLOR_BARRA, COLOR_FONDO, COLOR_MENU, FUENTE 
+from config import ROLES_PANTALLAS 
 from vistas.piezas import PiezasWidget
 from vistas.movimientos import MovimientosWidget
 from vistas.lotes import LotesWidget
@@ -18,18 +25,76 @@ from vistas.kits import KitsWidget
 from vistas.historial_compras import HistorialComprasWidget
 from vistas.respaldos import RespaldosWidget
 
+
+def get_white_svg_icon(svg_path, size=QSize(24, 24)):
+    if not os.path.exists(svg_path):
+        print(f"Advertencia: El archivo SVG no existe: {svg_path}")
+        return QIcon()
+
+    renderer = QSvgRenderer(svg_path)
+    if not renderer.isValid():
+        print(f"Advertencia: El archivo SVG no es válido: {svg_path}")
+        return QIcon()
+
+    pixmap = QPixmap(size)
+    pixmap.fill(Qt.GlobalColor.transparent)
+
+    painter = QPainter(pixmap)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+    renderer.render(painter, QRectF(0, 0, size.width(), size.height()))
+
+    painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceIn)
+    painter.fillRect(pixmap.rect(), Qt.GlobalColor.white)
+
+    painter.end()
+
+    return QIcon(pixmap)
+            
+    
+def get_black_svg_icon(svg_path, size=QSize(24, 24)):
+    if not os.path.exists(svg_path):
+        print(f"Advertencia: El archivo SVG no existe: {svg_path}")
+        return QIcon()
+
+    renderer = QSvgRenderer(svg_path)
+    if not renderer.isValid():
+        print(f"Advertencia: El archivo SVG no es válido: {svg_path}")
+        return QIcon()
+
+    pixmap = QPixmap(size)
+    pixmap.fill(Qt.GlobalColor.transparent)
+
+    painter = QPainter(pixmap)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+
+    renderer.render(painter, QRectF(0, 0, size.width(), size.height()))
+    painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceIn)
+    painter.fillRect(pixmap.rect(), Qt.GlobalColor.black)
+
+    painter.end()
+
+    return QIcon(pixmap)
+
+
+
 class DashboardWindow(QWidget):
     def __init__(self, user_id, user_name, user_rol):
         super().__init__()
         self.setWindowTitle("Dashboard - Maestranzas Unidos S.A.")
-        self.resize(1200, 800)
+        # MANTÉN UN VALOR ALTO AQUÍ. Por ejemplo, 1300 o 1400.
+        self.resize(1200, 1300) 
         self.user_id = user_id
         self.user_name = user_name
         self.user_rol = user_rol
         self.setup_ui()
 
     def setup_ui(self):
-        # Barra superior (amarilla)
+        def get_icon_path(icon_name):
+            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            return os.path.join(base_dir, 'icons', icon_name)
+        
+
         barra = QFrame()
         barra.setFixedHeight(64)
         barra.setStyleSheet(f"background-color: {COLOR_BARRA};")
@@ -50,96 +115,257 @@ class DashboardWindow(QWidget):
         self.busqueda.textChanged.connect(self.buscar_en_modulo_actual)
         barra_layout.addWidget(self.busqueda)
 
-        # Menú lateral (gris claro)
-        menu = QListWidget()
-        menu.setFixedWidth(220)
-        menu.setStyleSheet(f"""
-            QListWidget {{
-                background: {COLOR_MENU};
-                border: none;
+        menu_lateral_widget = QWidget() 
+        menu_lateral_layout = QVBoxLayout(menu_lateral_widget)
+        # Aseguramos que no haya márgenes ni espaciados en el layout del menú lateral
+        menu_lateral_layout.setContentsMargins(0, 0, 0, 0) 
+        menu_lateral_layout.setSpacing(0)
+        menu_lateral_widget.setFixedWidth(240)
+        menu_lateral_widget.setStyleSheet(f"background: #3D4B59; border-right: 2px solid #32384B;") 
+
+        user_info_frame = QFrame()
+        user_info_frame.setStyleSheet(f"background-color: #3D4B59;") 
+        user_info_layout = QVBoxLayout(user_info_frame)
+        user_info_layout.setContentsMargins(20, 20, 20, 10)
+        user_info_layout.setSpacing(5)
+
+        label_user_name = QLabel(self.user_name)
+        label_user_name.setStyleSheet(f"font-size: 18px; font-weight: bold; font-family: {FUENTE}; color: #FFFFFF;") 
+        user_info_layout.addWidget(label_user_name)
+
+        label_user_rol = QLabel(self.user_rol.capitalize().replace("_", " "))
+        label_user_rol.setStyleSheet(f"font-size: 14px; font-family: {FUENTE}; color: #FFFFFF;") 
+        user_info_layout.addWidget(label_user_rol)
+        
+        user_info_layout.addSpacerItem(QSpacerItem(20, 20, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed))
+
+        self.btn_mi_perfil = QPushButton("Mi Perfil")
+        self.btn_mi_perfil.setIcon(get_white_svg_icon(get_icon_path("account.svg"))) 
+        self.btn_mi_perfil.setIconSize(QSize(20, 20))
+        self.btn_mi_perfil.setStyleSheet(f"""
+            QPushButton {{
+                background-color: #3D4B59; 
+                color: white; 
                 font-family: {FUENTE};
-                font-size: 17px;
-                padding-top: 26px;
+                font-size: 15px;
+                text-align: left;
+                padding: 8px 6px; 
+                border: none;
             }}
-            QListWidget::item {{
-                height: 46px;
-                margin-bottom: 7px;
-                border-radius: 9px;
-                padding-left: 16px;
-            }}
-            QListWidget::item:selected {{
-                background: white;
-                color: #2152FF;
-                font-weight: bold;
-                border: 2px solid #2152FF;
+            QPushButton:hover {{
+                background-color: #D0AF79; 
+                color: white;
             }}
         """)
+        user_info_layout.addWidget(self.btn_mi_perfil)
 
-        # Opciones de menú según rol
-        opciones = ROLES_PANTALLAS.get(self.user_rol, [])
-        # Mapea a nombres legibles
-        TITULOS = {
+        self.btn_logout_menu_top = QPushButton("Cerrar sesión")
+        self.btn_logout_menu_top.setIcon(get_white_svg_icon(get_icon_path("logout.svg"))) 
+        self.btn_logout_menu_top.setIconSize(QSize(20, 20))
+        self.btn_logout_menu_top.setStyleSheet(f"""
+            QPushButton {{
+                background-color: #3D4B59; 
+                color: white; 
+                font-family: {FUENTE};
+                font-size: 15px;
+                text-align: left;
+                padding: 8px 6px; 
+                border: none;
+            }}
+            QPushButton:hover {{
+                background-color: #D0AF79; 
+                color: white;
+            }}
+        """)
+        self.btn_logout_menu_top.clicked.connect(self.logout)
+        user_info_layout.addWidget(self.btn_logout_menu_top)
+        
+        user_info_layout.addSpacerItem(QSpacerItem(20, 5, QSizePolicy.Policy.Minimum, QSizePolicy.Policy.Fixed))
+
+        menu_lateral_layout.addWidget(user_info_frame)
+
+        separator = QFrame()
+        separator.setFrameShape(QFrame.Shape.HLine)
+        separator.setFrameShadow(QFrame.Shadow.Sunken)
+        separator.setFixedHeight(1)
+        separator.setStyleSheet("background-color: #32384B; margin: 10px 20px;") 
+        menu_lateral_layout.addWidget(separator)
+
+        menu_lateral_layout.addWidget(user_info_frame)
+
+        # Título "INVENTARIO"
+        titulo_inventario = QLabel("INVENTARIO")
+        titulo_inventario.setFixedHeight(36)
+        titulo_inventario.setAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft)
+        titulo_inventario.setStyleSheet(f"""
+            background-color: #e5e4e9;
+            color: #16202B;
+            font-family: {FUENTE};
+            font-size: 14px;
+            font-weight: bold;
+            padding-left: 20px;
+            border-bottom: 1px solid #a0a0a0;
+        """)
+        menu_lateral_layout.addWidget(titulo_inventario)
+
+
+        menu = QListWidget()
+        menu.setContentsMargins(0, 0, 0, 0) 
+        menu.setSpacing(0) 
+
+        menu.setStyleSheet(f"""
+            QListWidget {{
+                background: #3D4B59; 
+                border: none;
+                font-family: {FUENTE};
+                font-size: 16px;
+                padding-top: 5px; 
+                color: white; 
+                outline: 0; 
+            }}
+            QListWidget::item {{
+                height: 30px; 
+                margin-bottom: 5px; 
+                border-radius: 5px;
+                padding-left: 20px;
+                padding-right: 5px;
+            }}
+            QListWidget::item:selected {{
+                background: #FAB647; 
+                color: black; 
+                font-weight: bold;
+                border: none;
+            }}
+            QListWidget::item:hover {{
+                background: #D0AF79; 
+                color: white;
+            }}
+            QScrollBar:vertical {{
+                border: none;
+                background: transparent; 
+                width: 0px; 
+            }}
+            QScrollBar::handle:vertical {{
+                background: transparent;
+                width: 0px;
+            }}
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical,
+            QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {{
+                background: none;
+                height: 0px;
+                width: 0px;
+            }}
+        """)
+        menu.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        menu.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        
+        menu.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+
+
+        self.MENU_ITEM_ICON_PATH = get_icon_path("package.svg")
+        self.DEFAULT_MENU_ITEM_ICON = get_white_svg_icon(self.MENU_ITEM_ICON_PATH)
+
+        self.TITULOS = {
             "dashboard": "Inicio",
-            "piezas": "Inventario",
-            "movimientos": "Movimientos",
-            "lotes": "Lotes",
+            "piezas": "Inventario General",
+            "nueva_pieza": "Nueva Pieza",
+            "movimientos": "Registrar movimientos",
+            "lotes": "Gestión de Lotes",
+            "etiquetas": "Etiquetas",
+            "categorias": "Categorías",
             "usuarios": "Usuarios",
             "clientes": "Clientes",
             "proveedores": "Proveedores",
-            "etiquetas": "Etiquetas",
-            "categorias": "Categorías",
             "ubicaciones": "Ubicaciones",
             "ordenes_compra": "Órdenes de Compra",
             "kits": "Kits",
             "historial_compras": "Historial de Compras",
             "respaldos": "Respaldos",
         }
-        self.opciones = opciones
-        menu.addItems([TITULOS.get(op, op.capitalize()) for op in opciones])
-        menu.currentRowChanged.connect(self.cambiar_modulo)
-        self.menu = menu  # para referencia en otros métodos
 
-        # Área principal (stack)
+        self.opciones_menu_keys = [] 
+
+        opciones_permitidas = ROLES_PANTALLAS.get(self.user_rol, [])
+
+        secciones_y_modulos_filtrados = [
+            ("INVENTARIO", ["piezas", "nueva_pieza", "movimientos", "lotes", "etiquetas", "categorias",
+                             "ordenes_compra", "kits", "historial_compras", "ubicaciones",
+                             "usuarios", "clientes", "proveedores", "respaldos"]),
+        ]
+
+
+
+        for seccion_titulo, modulos_en_seccion in secciones_y_modulos_filtrados:
+
+            for op_key in modulos_en_seccion:
+                if op_key in opciones_permitidas: 
+                    titulo = self.TITULOS.get(op_key, op_key.capitalize())
+                    item = QListWidgetItem(self.DEFAULT_MENU_ITEM_ICON, titulo) 
+                    menu.addItem(item)
+                    self.opciones_menu_keys.append(op_key) 
+        
+
+
+        menu.currentRowChanged.connect(self._handle_menu_selection)
+        self.menu = menu
+
+        menu_lateral_layout.addWidget(menu, stretch=1)
+
+
         self.stack = QStackedWidget()
         self.modulos = {}
-        for op in opciones:
-            if op == "piezas":
+        for op_key in self.opciones_menu_keys: 
+            if op_key == "piezas":
                 widget = PiezasWidget()
-            elif op == "movimientos":
+            elif op_key == "movimientos":
                 widget = MovimientosWidget(user_id=self.user_id)
-            elif op == "lotes":
+            elif op_key == "lotes":
                 widget = LotesWidget()
-            elif op == "usuarios":
+            elif op_key == "usuarios":
                 widget = UsuariosWidget()
-            elif op == "clientes":
+            elif op_key == "clientes":
                 widget = ClientesWidget()
-            elif op == "proveedores":
+            elif op_key == "proveedores":
                 widget = ProveedoresWidget()
-            elif op == "etiquetas":
+            elif op_key == "etiquetas":
                 widget = EtiquetasWidget()
-            elif op == "categorias":
+            elif op_key == "categorias":
                 widget = CategoriasWidget()
-            elif op == "ubicaciones":
+            elif op_key == "ubicaciones":
                 widget = UbicacionesWidget()
-            elif op == "ordenes_compra":
+            elif op_key == "ordenes_compra":
                 widget = OrdenesCompraWidget()
-            elif op == "kits":
+            elif op_key == "kits":
                 widget = KitsWidget()
-            elif op == "historial_compras":
+            elif op_key == "historial_compras":
                 widget = HistorialComprasWidget()
-            elif op == "respaldos":
+            elif op_key == "respaldos":
                 widget = RespaldosWidget(user_id=self.user_id)
-            else:
-                widget = QLabel(f"Vista {TITULOS.get(op, op.capitalize())} (en construcción)")
+            elif op_key == "nueva_pieza":
+                widget = QLabel("Vista Nueva Pieza (en construcción)")
                 widget.setAlignment(Qt.AlignmentFlag.AlignCenter)
                 widget.setStyleSheet(f"color: white; font-size: 24px;")
-            self.modulos[op] = widget
+            else:
+                widget = QLabel(f"Vista {self.TITULOS.get(op_key, op_key.capitalize())} (en construcción)")
+                widget.setAlignment(Qt.AlignmentFlag.AlignCenter)
+                widget.setStyleSheet(f"color: white; font-size: 24px;")
+            
+            self.modulos[op_key] = widget
             self.stack.addWidget(widget)
-        self.menu.setCurrentRow(0)
 
-        # Layout principal con fondo azul oscuro
+        first_selectable_item_index = -1
+        for i in range(self.menu.count()):
+            if self.menu.item(i).flags() & Qt.ItemFlag.ItemIsSelectable:
+                first_selectable_item_index = i
+                break
+        
+        if first_selectable_item_index != -1:
+            self.menu.setCurrentRow(first_selectable_item_index)
+        else:
+            self.stack.setCurrentIndex(-1)
+
         fondo = QFrame()
-        fondo.setStyleSheet(f"background: {COLOR_FONDO}; border: none;")
+        fondo.setStyleSheet(f"background: {COLOR_FONDO}; border: none;") 
         fondo_layout = QVBoxLayout(fondo)
         fondo_layout.setContentsMargins(20, 20, 20, 20)
         fondo_layout.addWidget(self.stack)
@@ -148,49 +374,86 @@ class DashboardWindow(QWidget):
         main_layout.setContentsMargins(0, 0, 0, 0)
         main_layout.setSpacing(0)
         main_layout.addWidget(barra)
+
         body_layout = QHBoxLayout()
         body_layout.setContentsMargins(0, 0, 0, 0)
         body_layout.setSpacing(0)
-        # Menú lateral en marco decorativo
-        menu_frame = QFrame()
-        menu_layout = QVBoxLayout(menu_frame)
-        menu_layout.setContentsMargins(0, 0, 0, 0)
-        menu_layout.setSpacing(0)
-        # Opcional: añade perfil, avatar o datos usuario aquí arriba del menú si tu mockup lo tiene
-        menu_layout.addWidget(menu)
-        # ---- Botón de cerrar sesión ----
-        self.btn_logout = QPushButton("Cerrar sesión")
-        self.btn_logout.setStyleSheet(
-            "background-color: #FF5252; color: white; font-weight: bold; padding: 12px; border-radius: 7px; font-size: 16px; margin: 24px 20px 8px 20px;"
-        )
-        self.btn_logout.clicked.connect(self.logout)
-        menu_layout.addWidget(self.btn_logout)
-        menu_layout.addStretch()
-        menu_frame.setStyleSheet(f"background: {COLOR_MENU}; border-right: 2px solid #e0e0e0;")
-        body_layout.addWidget(menu_frame)
+
+        body_layout.addWidget(menu_lateral_widget)
         body_layout.addWidget(fondo)
-        body_layout.setStretch(0, 1)  # Menú lateral: 1 parte
-        body_layout.setStretch(1, 3)  # Contenido: 3 partes
+
+        body_layout.setStretch(0, 1)
+        body_layout.setStretch(1, 3)
         main_layout.addLayout(body_layout)
 
         self.setLayout(main_layout)
 
     def buscar_en_modulo_actual(self, texto):
-        # Determina el widget actual en el stack
         widget_actual = self.stack.currentWidget()
-        # Si el widget tiene método filtrar, lo llama
         if hasattr(widget_actual, "filtrar"):
             widget_actual.filtrar(texto)
-    
-    def cambiar_modulo(self, idx):
-        self.stack.setCurrentIndex(idx)
-        self.busqueda.setText("")  # Limpia el buscador al cambiar ventana
+
+
+    def _handle_menu_selection(self, current_row):
+        selected_item = self.menu.item(current_row)
+
+        if selected_item and not (selected_item.flags() & Qt.ItemFlag.ItemIsSelectable):
+            current_index_in_stack = self.stack.currentIndex()
+            if current_index_in_stack != -1:
+                current_modulo_key = self.opciones_menu_keys[current_index_in_stack]
+                for i in range(self.menu.count()):
+                    item = self.menu.item(i)
+                    if (item.flags() & Qt.ItemFlag.ItemIsSelectable) and \
+                    (self.TITULOS.get(current_modulo_key, current_modulo_key.capitalize()) == item.text()):
+                        self.menu.setCurrentRow(i)
+
+                        # Cambiar íconos: ítem seleccionado = negro, resto = blanco
+                        for j in range(self.menu.count()):
+                            item_j = self.menu.item(j)
+                            if j == i:
+                                item_j.setIcon(get_black_svg_icon(self.MENU_ITEM_ICON_PATH))
+                            else:
+                                item_j.setIcon(self.DEFAULT_MENU_ITEM_ICON)
+                        break
+            return 
+
+        if selected_item: 
+            modulo_text = selected_item.text()
+            modulo_key = None
+            for key, title in self.TITULOS.items():
+                if title == modulo_text:
+                    modulo_key = key
+                    break
+            
+            if modulo_key and modulo_key in self.modulos:
+                try:
+                    stack_index = self.opciones_menu_keys.index(modulo_key)
+                    self.stack.setCurrentIndex(stack_index)
+
+                    # Cambiar íconos según selección
+                    for i in range(self.menu.count()):
+                        item_i = self.menu.item(i)
+                        if i == current_row:
+                            item_i.setIcon(get_black_svg_icon(self.MENU_ITEM_ICON_PATH))
+                        else:
+                            item_i.setIcon(self.DEFAULT_MENU_ITEM_ICON)
+
+                    self.busqueda.setText("")
+                except ValueError:
+                    print(f"Advertencia: El módulo '{modulo_key}' no se encontró en el stack de widgets. ¿Está instanciado?")
+            else:
+                print(f"Advertencia: No se encontró una clave de módulo para el ítem '{modulo_text}'.")
+        else: 
+            first_selectable_item_index = -1
+            for i in range(self.menu.count()):
+                if self.menu.item(i).flags() & Qt.ItemFlag.ItemIsSelectable:
+                    first_selectable_item_index = i
+                    break
+            if first_selectable_item_index != -1:
+                self.menu.setCurrentRow(first_selectable_item_index)
 
     def logout(self):
-        from vistas.login import LoginWindow  # Importa aquí para evitar dependencias circulares
+        from vistas.login import LoginWindow
         self.close()
         self.login_window = LoginWindow()
         self.login_window.show()
-
-
-
