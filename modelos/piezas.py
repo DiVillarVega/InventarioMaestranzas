@@ -6,28 +6,37 @@ def obtener_todas_piezas():
     piezas = []
     if conn:
         cur = conn.cursor()
-        cur.execute("""
-            SELECT p.id, p.codigo, p.nombre, p.descripcion, p.stock_actual, p.ubicacion,
-                   p.precio, c.nombre AS categoria, e.nombre AS etiqueta
-            FROM piezas p
-            LEFT JOIN categorias c ON p.categoria_id = c.id
-            LEFT JOIN etiquetas e ON p.etiqueta_id = e.id
-            ORDER BY p.id DESC
-        """)
-        for row in cur.fetchall():
-            piezas.append({
-                "id": row[0],
-                "codigo": row[1],
-                "nombre": row[2],
-                "descripcion": row[3],
-                "stock": row[4],
-                "ubicacion": row[5],
-                "precio": row[6],
-                "categoria": row[7],
-                "etiqueta": row[8]
-            })
-        conn.close()
+        try:
+            cur.execute("""
+                SELECT p.id, p.codigo, p.nombre, p.descripcion, p.stock_actual, p.ubicacion,
+                       p.precio, c.nombre AS categoria, e.nombre AS etiqueta
+                FROM piezas p
+                LEFT JOIN categorias c ON p.categoria_id = c.id
+                LEFT JOIN etiquetas e ON p.etiqueta_id = e.id
+                ORDER BY p.id DESC
+            """)
+            rows = cur.fetchall()
+            for row in rows:
+                try:
+                    piezas.append({
+                        "id": row[0],
+                        "codigo": row[1],
+                        "nombre": row[2],
+                        "descripcion": row[3],
+                        "stock": row[4],
+                        "ubicacion": row[5],
+                        "precio": row[6],
+                        "categoria": row[7],
+                        "etiqueta": row[8]
+                    })
+                except UnicodeDecodeError as e:
+                    print(f"Error al decodificar fila id={row[0]}: {e}")
+        except Exception as e:
+            print(f"Error ejecutando consulta: {e}")
+        finally:
+            conn.close()
     return piezas
+
 
 def agregar_pieza(codigo, nombre, desc, stock, ubicacion, precio, categoria_id, etiqueta_id):
     conn = get_connection()
@@ -48,15 +57,22 @@ def agregar_pieza(codigo, nombre, desc, stock, ubicacion, precio, categoria_id, 
     return False, "No se pudo conectar a la base de datos"
 
 
-def editar_pieza(id_pieza, codigo, nombre, descripcion, stock, ubicacion):
+def editar_pieza(id, codigo, nombre, descripcion, stock, ubicacion, precio, categoria_id, etiqueta_id):
     conn = get_connection()
     if conn:
         cur = conn.cursor()
         cur.execute("""
             UPDATE piezas
-            SET codigo=%s, nombre=%s, descripcion=%s, stock_actual=%s, ubicacion=%s
-            WHERE id=%s
-        """, (codigo, nombre, descripcion, stock, ubicacion, id_pieza))
+            SET codigo = %s,
+                nombre = %s,
+                descripcion = %s,
+                stock_actual = %s,
+                ubicacion = %s,
+                precio = %s,
+                categoria_id = %s,
+                etiqueta_id = %s
+            WHERE id = %s
+        """, (codigo, nombre, descripcion, stock, ubicacion, precio, categoria_id, etiqueta_id, id))
         conn.commit()
         conn.close()
 

@@ -63,6 +63,15 @@ class AltaPiezaDialog(QDialog):
             self.input_desc.setText(pieza["descripcion"] or "")
             self.input_stock.setValue(pieza["stock"])
             self.input_ubic.setText(pieza["ubicacion"] or "")
+            self.input_precio.setValue(pieza["precio"])
+            
+            index_cat = self.input_categoria.findText(pieza["categoria"])
+            if index_cat != -1:
+                self.input_categoria.setCurrentIndex(index_cat)
+
+            index_eti = self.input_etiqueta.findText(pieza["etiqueta"])
+            if index_eti != -1:
+                self.input_etiqueta.setCurrentIndex(index_eti)
 
     def datos(self):
         return (
@@ -154,6 +163,7 @@ class PiezasWidget(QWidget):
         if row == -1:
             QMessageBox.warning(self, "Edición", "Seleccione una pieza para editar")
             return
+
         pieza = {
             "id": int(self.tabla.item(row, 0).text()),
             "codigo": self.tabla.item(row, 1).text(),
@@ -161,11 +171,15 @@ class PiezasWidget(QWidget):
             "descripcion": self.tabla.item(row, 3).text(),
             "stock": int(self.tabla.item(row, 4).text()),
             "ubicacion": self.tabla.item(row, 5).text(),
+            "precio": float(self.tabla.item(row, 6).text().replace("$", "").replace(",", "")),
+            "categoria": self.tabla.item(row, 7).text(),
+            "etiqueta": self.tabla.item(row, 8).text(),
         }
+
         dlg = AltaPiezaDialog(self, pieza)
         if dlg.exec():
-            codigo, nombre, desc, stock, ubicacion = dlg.datos()
-            editar_pieza(pieza["id"], codigo, nombre, desc, stock, ubicacion)
+            codigo, nombre, desc, stock, ubicacion, precio, categoria, etiqueta = dlg.datos()
+            editar_pieza(pieza["id"], codigo, nombre, desc, stock, ubicacion, precio, categoria, etiqueta)
             self.cargar_piezas()
 
     def eliminar_pieza(self):

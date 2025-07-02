@@ -64,17 +64,34 @@ class LoginWindow(QWidget):
         conn = get_connection()
         if conn:
             cur = conn.cursor()
+
+            # Buscar en trabajadores
             cur.execute(
-            "SELECT id, nombre, rol FROM trabajadores WHERE LOWER(correo)=%s AND password=%s",
-            (email, pwd)
+                "SELECT id, nombre, rol FROM trabajadores WHERE LOWER(correo)=%s AND password=%s",
+                (email, pwd)
             )
             usuario = cur.fetchone()
-            conn.close()
+
             if usuario:
-                self.hide()
-                self.dashboard = DashboardWindow(usuario[0], usuario[1], usuario[2])
-                self.dashboard.show()
+                user_id, nombre, rol = usuario
             else:
-                QMessageBox.warning(self, "Error", "Usuario o contraseña incorrectos")
+                # Si no está en trabajadores, buscar en clientes
+                cur.execute(
+                    "SELECT id, nombre FROM clientes WHERE LOWER(correo)=%s AND password=%s",
+                    (email, pwd)
+                )
+                cliente = cur.fetchone()
+                if cliente:
+                    user_id, nombre = cliente
+                    rol = 'cliente'  # o 'comprador', como definas en config.py
+                else:
+                    conn.close()
+                    QMessageBox.warning(self, "Error", "Usuario o contraseña incorrectos")
+                    return
+
+            conn.close()
+            self.hide()
+            self.dashboard = DashboardWindow(user_id, nombre, rol)
+            self.dashboard.show()
         else:
             QMessageBox.critical(self, "Error", "No se pudo conectar a la base de datos")

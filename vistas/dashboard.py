@@ -1,14 +1,16 @@
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QListWidget, QFrame,
     QLineEdit, QStackedWidget, QPushButton, QSizePolicy, QSpacerItem,
-    QListWidgetItem
+    QListWidgetItem, QDialog, QScrollArea, QDialogButtonBox
 )
 from PyQt6.QtCore import Qt, QSize, QRectF
 from PyQt6.QtGui import QIcon, QColor, QFont, QPixmap, QPainter
 from PyQt6.QtSvg import QSvgRenderer
+from datetime import datetime, timedelta
 
 import os
 
+from conexion import get_connection
 from estilos import COLOR_BARRA, COLOR_FONDO, COLOR_MENU, FUENTE 
 from config import ROLES_PANTALLAS 
 from vistas.piezas import PiezasWidget
@@ -77,23 +79,22 @@ def get_black_svg_icon(svg_path, size=QSize(24, 24)):
     return QIcon(pixmap)
 
 
-
 class DashboardWindow(QWidget):
     def __init__(self, user_id, user_name, user_rol):
         super().__init__()
         self.setWindowTitle("Dashboard - Maestranzas Unidos S.A.")
-        # MANTÉN UN VALOR ALTO AQUÍ. Por ejemplo, 1300 o 1400.
         self.resize(1200, 1300) 
         self.user_id = user_id
         self.user_name = user_name
         self.user_rol = user_rol
         self.setup_ui()
+        self.update_bell_icon()  # Actualizar icono campana al iniciar
+
 
     def setup_ui(self):
         def get_icon_path(icon_name):
             base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             return os.path.join(base_dir, 'icons', icon_name)
-        
 
         barra = QFrame()
         barra.setFixedHeight(64)
@@ -106,6 +107,15 @@ class DashboardWindow(QWidget):
         label_logo.setStyleSheet(f"font-size: 23px; font-weight: bold; font-family: {FUENTE}; color: #16202B;")
         barra_layout.addWidget(label_logo)
         barra_layout.addStretch()
+
+        # Botón de campana (notificaciones)
+        self.bell_button = QPushButton()
+        self.bell_button.setIconSize(QSize(24, 24))
+        self.bell_button.setFlat(True)
+        self.bell_button.clicked.connect(self.show_notifications)
+        barra_layout.addWidget(self.bell_button)
+
+        # Un solo QLineEdit para búsqueda
         self.busqueda = QLineEdit()
         self.busqueda.setPlaceholderText("Buscar...")
         self.busqueda.setFixedWidth(280)
@@ -115,9 +125,11 @@ class DashboardWindow(QWidget):
         self.busqueda.textChanged.connect(self.buscar_en_modulo_actual)
         barra_layout.addWidget(self.busqueda)
 
+        # -- Continúa igual el resto del código setup_ui --
+        # (No hay cambios en lo que sigue)
+
         menu_lateral_widget = QWidget() 
         menu_lateral_layout = QVBoxLayout(menu_lateral_widget)
-        # Aseguramos que no haya márgenes ni espaciados en el layout del menú lateral
         menu_lateral_layout.setContentsMargins(0, 0, 0, 0) 
         menu_lateral_layout.setSpacing(0)
         menu_lateral_widget.setFixedWidth(240)
@@ -193,7 +205,6 @@ class DashboardWindow(QWidget):
 
         menu_lateral_layout.addWidget(user_info_frame)
 
-        # Título "INVENTARIO"
         titulo_inventario = QLabel("INVENTARIO")
         titulo_inventario.setFixedHeight(36)
         titulo_inventario.setAlignment(Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft)
@@ -294,7 +305,6 @@ class DashboardWindow(QWidget):
         ]
 
 
-
         for seccion_titulo, modulos_en_seccion in secciones_y_modulos_filtrados:
 
             for op_key in modulos_en_seccion:
@@ -388,11 +398,73 @@ class DashboardWindow(QWidget):
 
         self.setLayout(main_layout)
 
+    def update_bell_icon(self):
+        """
+        Verifica si hay piezas con stock < 10 y actualiza el icono de la campana.
+        """
+        conn = get_connection()
+        low_stock = []
+        if conn:
+            cur = conn.cursor()
+            cur.execute("SELECT nombre, stock_actual FROM piezas WHERE stock_actual < 10")
+            low_stock = cur.fetchall()
+            conn.close()
+
+        # Cambiar icono segun existencia de notificaciones
+        base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/icons/'
+        icon_name = 'bell-badge.svg' if low_stock else 'bell.svg'
+        icon = get_black_svg_icon(os.path.join(base_path, icon_name))
+        self.bell_button.setIcon(icon)
+        # Guardar datos para mostrar luego
+        self.notifications = low_stock
+
+    def show_notifications(self):
+        bajos_stock = []
+        try:
+            conn = get_connection()
+            if conn:
+                cur = conn.cursor()
+                # Consulta stock bajo
+                cur.execute("SELECT nombre, stock_actual FROM piezas WHERE stock_actual < 10")
+                bajos_stock = cur.fetchall()
+                conn.close()
+        except Exception as e:
+            print(f"Error al conectar con la base de datos: {e}")
+
+        dialog = QDialog(self)
+        dialog.setWindowTitle("Notificaciones")
+        layout = QVBoxLayout(dialog)
+
+        if bajos_stock:
+            scroll = QScrollArea()
+            scroll.setWidgetResizable(True)
+            content = QWidget()
+            v = QVBoxLayout(content)
+          
+            for nombre, stock in bajos_stock:
+                lbl = QLabel(f"Pieza '{nombre}' con stock bajo: {stock}")
+                lbl.setWordWrap(True)
+                v.addWidget(lbl)
+            content.setLayout(v)
+            scroll.setWidget(content)
+            layout.addWidget(scroll)
+        else:
+            lbl = QLabel("No hay notificaciones")
+            lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            layout.addWidget(lbl)
+
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok)
+        buttons.accepted.connect(dialog.accept)
+        layout.addWidget(buttons)
+
+        dialog.resize(300, 200)
+        dialog.exec()
+
+
     def buscar_en_modulo_actual(self, texto):
         widget_actual = self.stack.currentWidget()
         if hasattr(widget_actual, "filtrar"):
             widget_actual.filtrar(texto)
-
 
     def _handle_menu_selection(self, current_row):
         selected_item = self.menu.item(current_row)
@@ -403,57 +475,24 @@ class DashboardWindow(QWidget):
                 current_modulo_key = self.opciones_menu_keys[current_index_in_stack]
                 for i in range(self.menu.count()):
                     item = self.menu.item(i)
-                    if (item.flags() & Qt.ItemFlag.ItemIsSelectable) and \
-                    (self.TITULOS.get(current_modulo_key, current_modulo_key.capitalize()) == item.text()):
+                    if item.text() == self.TITULOS.get(current_modulo_key, current_modulo_key):
                         self.menu.setCurrentRow(i)
-
-                        # Cambiar íconos: ítem seleccionado = negro, resto = blanco
-                        for j in range(self.menu.count()):
-                            item_j = self.menu.item(j)
-                            if j == i:
-                                item_j.setIcon(get_black_svg_icon(self.MENU_ITEM_ICON_PATH))
-                            else:
-                                item_j.setIcon(self.DEFAULT_MENU_ITEM_ICON)
                         break
-            return 
+            return
 
-        if selected_item: 
-            modulo_text = selected_item.text()
-            modulo_key = None
-            for key, title in self.TITULOS.items():
-                if title == modulo_text:
-                    modulo_key = key
-                    break
-            
-            if modulo_key and modulo_key in self.modulos:
-                try:
-                    stack_index = self.opciones_menu_keys.index(modulo_key)
-                    self.stack.setCurrentIndex(stack_index)
-
-                    # Cambiar íconos según selección
-                    for i in range(self.menu.count()):
-                        item_i = self.menu.item(i)
-                        if i == current_row:
-                            item_i.setIcon(get_black_svg_icon(self.MENU_ITEM_ICON_PATH))
-                        else:
-                            item_i.setIcon(self.DEFAULT_MENU_ITEM_ICON)
-
-                    self.busqueda.setText("")
-                except ValueError:
-                    print(f"Advertencia: El módulo '{modulo_key}' no se encontró en el stack de widgets. ¿Está instanciado?")
-            else:
-                print(f"Advertencia: No se encontró una clave de módulo para el ítem '{modulo_text}'.")
-        else: 
-            first_selectable_item_index = -1
-            for i in range(self.menu.count()):
-                if self.menu.item(i).flags() & Qt.ItemFlag.ItemIsSelectable:
-                    first_selectable_item_index = i
-                    break
-            if first_selectable_item_index != -1:
-                self.menu.setCurrentRow(first_selectable_item_index)
+        modulo_key = self.opciones_menu_keys[current_row]
+        if modulo_key in self.modulos:
+            widget = self.modulos[modulo_key]
+            self.stack.setCurrentWidget(widget)
+            self.busqueda.clear()
+            self.setWindowTitle(f"{self.TITULOS.get(modulo_key)} - Maestranzas Unidos S.A.")
+        else:
+            print(f"No existe el módulo para la clave: {modulo_key}")
 
     def logout(self):
         from vistas.login import LoginWindow
         self.close()
         self.login_window = LoginWindow()
         self.login_window.show()
+
+
