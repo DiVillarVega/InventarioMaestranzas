@@ -7,10 +7,43 @@ from modelos.movimientos import (
 )
 from PyQt6.QtCore import Qt
 from vistas.tabla_estilizada import TablaEstilizada
+from estilos import estilo_titulo, estilo_boton_general
 
 class AltaMovimientoDialog(QDialog):
     def __init__(self, user_id, parent=None):
         super().__init__(parent)
+        self.setAutoFillBackground(True)
+        self.setStyleSheet("""
+            QDialog {
+                background-color: #16202b;
+                color: white;
+                font-family: Segoe UI;
+            }
+            QLabel {
+                color: white;
+            }
+            QLineEdit, QComboBox, QTextEdit, QSpinBox, QDoubleSpinBox {
+                background-color: #2c3a44;
+                color: white;
+                border: 1px solid #555;
+                border-radius: 4px;
+                padding: 4px;
+            }
+            QPushButton {
+                background-color: #ba846c;
+                color: white;
+                font-weight: bold;
+                border-radius: 6px;
+                padding: 5px 15px;
+                min-width: 80px;
+            }
+            QPushButton:hover {
+                background-color: #a46f5c;
+            }
+            QPushButton:pressed {
+                background-color: #8e5f50;
+            }
+        """)        
         self.setWindowTitle("Registrar Movimiento")
         layout = QFormLayout()
 
@@ -90,10 +123,11 @@ class MovimientosWidget(QWidget):
         layout = QVBoxLayout()
 
         titulo = QLabel("Movimientos de Inventario")
-        titulo.setStyleSheet("font-size: 18px;")
+        titulo.setStyleSheet("font-size: 18px; color: white; font-weight: bold;")
         layout.addWidget(titulo)
 
         self.btn_nuevo = QPushButton("Registrar nuevo movimiento")
+        self.btn_nuevo.setStyleSheet(estilo_boton_general)
         self.btn_nuevo.clicked.connect(self.alta_movimiento)
         layout.addWidget(self.btn_nuevo)
 

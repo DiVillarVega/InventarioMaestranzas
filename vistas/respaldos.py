@@ -7,6 +7,7 @@ from vistas.tabla_estilizada import TablaEstilizada
 from PyQt6.QtWidgets import QFileDialog
 from modelos.respaldos import obtener_respaldos, agregar_respaldo, eliminar_respaldo, generar_respaldo_json
 import json
+from estilos import estilo_titulo, estilo_boton_general
 
 class RespaldosWidget(QWidget):
     def __init__(self, user_id):
@@ -16,14 +17,16 @@ class RespaldosWidget(QWidget):
         layout = QVBoxLayout()
 
         titulo = QLabel("Gestión de Respaldos")
-        titulo.setStyleSheet("font-size: 18px;")
+        titulo.setStyleSheet("font-size: 18px; color: white; font-weight: bold;")
         layout.addWidget(titulo)
 
         btns = QHBoxLayout()
         self.btn_nuevo = QPushButton("Registrar respaldo")
+        self.btn_nuevo.setStyleSheet(estilo_boton_general)
         self.btn_nuevo.clicked.connect(self.alta_respaldo)
         btns.addWidget(self.btn_nuevo)
         self.btn_eliminar = QPushButton("Eliminar respaldo seleccionado")
+        self.btn_eliminar.setStyleSheet(estilo_boton_general)
         self.btn_eliminar.clicked.connect(self.eliminar_respaldo)
         btns.addWidget(self.btn_eliminar)
         layout.addLayout(btns)

@@ -4,6 +4,7 @@ from PyQt6.QtWidgets import (
 )
 from modelos.ordenes_compra import obtener_ordenes, agregar_orden, editar_estado_orden, eliminar_orden
 from vistas.tabla_estilizada import TablaEstilizada
+from estilos import estilo_titulo, estilo_boton_general
 
 ESTADOS = ['pendiente', 'enviada', 'recibida', 'cancelada']
 
@@ -14,14 +15,16 @@ class OrdenesCompraWidget(QWidget):
         layout = QVBoxLayout()
 
         titulo = QLabel("Órdenes de Compra")
-        titulo.setStyleSheet("font-size: 18px;")
+        titulo.setStyleSheet("font-size: 18px; color: white; font-weight: bold;")
         layout.addWidget(titulo)
 
         btns = QHBoxLayout()
         self.btn_nueva = QPushButton("Crear orden")
+        self.btn_nueva.setStyleSheet(estilo_boton_general)
         self.btn_nueva.clicked.connect(self.crear_orden)
         btns.addWidget(self.btn_nueva)
         self.btn_eliminar = QPushButton("Eliminar orden seleccionada")
+        self.btn_eliminar.setStyleSheet(estilo_boton_general)
         self.btn_eliminar.clicked.connect(self.eliminar_orden)
         btns.addWidget(self.btn_eliminar)
         layout.addLayout(btns)

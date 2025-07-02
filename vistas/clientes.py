@@ -6,10 +6,43 @@ from modelos.clientes import (
     obtener_clientes, agregar_cliente, editar_cliente, eliminar_cliente, cambiar_password
 )
 from vistas.tabla_estilizada import TablaEstilizada
+from estilos import estilo_titulo, estilo_boton_general
 
 class ClienteDialog(QDialog):
     def __init__(self, parent=None, cliente=None, editar_password=False):
         super().__init__(parent)
+        self.setAutoFillBackground(True)
+        self.setStyleSheet("""
+            QDialog {
+                background-color: #16202b;
+                color: white;
+                font-family: Segoe UI;
+            }
+            QLabel {
+                color: white;
+            }
+            QLineEdit, QComboBox, QTextEdit, QSpinBox, QDoubleSpinBox {
+                background-color: #2c3a44;
+                color: white;
+                border: 1px solid #555;
+                border-radius: 4px;
+                padding: 4px;
+            }
+            QPushButton {
+                background-color: #ba846c;
+                color: white;
+                font-weight: bold;
+                border-radius: 6px;
+                padding: 5px 15px;
+                min-width: 80px;
+            }
+            QPushButton:hover {
+                background-color: #a46f5c;
+            }
+            QPushButton:pressed {
+                background-color: #8e5f50;
+            }
+        """)    
         self.setWindowTitle("Cliente")
         layout = QFormLayout()
 
@@ -49,20 +82,24 @@ class ClientesWidget(QWidget):
         layout = QVBoxLayout()
 
         titulo = QLabel("Gestión de Clientes")
-        titulo.setStyleSheet("font-size: 18px;")
+        titulo.setStyleSheet("font-size: 18px; color: white; font-weight: bold;")
         layout.addWidget(titulo)
 
         btns = QHBoxLayout()
         self.btn_nuevo = QPushButton("Agregar cliente")
+        self.btn_nuevo.setStyleSheet(estilo_boton_general)
         self.btn_nuevo.clicked.connect(self.alta_cliente)
         btns.addWidget(self.btn_nuevo)
         self.btn_editar = QPushButton("Editar cliente seleccionado")
+        self.btn_editar.setStyleSheet(estilo_boton_general)
         self.btn_editar.clicked.connect(self.editar_cliente)
         btns.addWidget(self.btn_editar)
         self.btn_password = QPushButton("Cambiar contraseña")
+        self.btn_password.setStyleSheet(estilo_boton_general)
         self.btn_password.clicked.connect(self.cambiar_password)
         btns.addWidget(self.btn_password)
         self.btn_eliminar = QPushButton("Eliminar cliente seleccionado")
+        self.btn_eliminar.setStyleSheet(estilo_boton_general)
         self.btn_eliminar.clicked.connect(self.eliminar_cliente)
         btns.addWidget(self.btn_eliminar)
         layout.addLayout(btns)

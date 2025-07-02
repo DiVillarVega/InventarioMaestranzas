@@ -7,10 +7,43 @@ from modelos.piezas import obtener_todas_piezas
 from modelos.proveedores import obtener_proveedores
 from PyQt6.QtCore import QDate
 from vistas.tabla_estilizada import TablaEstilizada
+from estilos import estilo_titulo, estilo_boton_general
 
 class AltaCompraDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.setAutoFillBackground(True)
+        self.setStyleSheet("""
+            QDialog {
+                background-color: #16202b;
+                color: white;
+                font-family: Segoe UI;
+            }
+            QLabel {
+                color: white;
+            }
+            QLineEdit, QComboBox, QTextEdit, QSpinBox, QDoubleSpinBox {
+                background-color: #2c3a44;
+                color: white;
+                border: 1px solid #555;
+                border-radius: 4px;
+                padding: 4px;
+            }
+            QPushButton {
+                background-color: #ba846c;
+                color: white;
+                font-weight: bold;
+                border-radius: 6px;
+                padding: 5px 15px;
+                min-width: 80px;
+            }
+            QPushButton:hover {
+                background-color: #a46f5c;
+            }
+            QPushButton:pressed {
+                background-color: #8e5f50;
+            }
+        """)        
         self.setWindowTitle("Registrar compra")
         layout = QFormLayout()
 
@@ -62,14 +95,16 @@ class HistorialComprasWidget(QWidget):
         layout = QVBoxLayout()
 
         titulo = QLabel("Historial de Compras")
-        titulo.setStyleSheet("font-size: 18px;")
+        titulo.setStyleSheet("font-size: 18px; color: white; font-weight: bold;")
         layout.addWidget(titulo)
 
         btns = QHBoxLayout()
         self.btn_nueva = QPushButton("Registrar compra")
+        self.btn_nueva.setStyleSheet(estilo_boton_general)
         self.btn_nueva.clicked.connect(self.alta_compra)
         btns.addWidget(self.btn_nueva)
         self.btn_eliminar = QPushButton("Eliminar compra seleccionada")
+        self.btn_eliminar.setStyleSheet(estilo_boton_general)
         self.btn_eliminar.clicked.connect(self.eliminar_compra)
         btns.addWidget(self.btn_eliminar)
         layout.addLayout(btns)

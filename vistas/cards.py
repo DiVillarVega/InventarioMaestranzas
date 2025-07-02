@@ -16,7 +16,7 @@ class CardWidget(QWidget):
         label_icono.setStyleSheet("font-size: 28px;")
         layout.addWidget(label_icono)
         label_titulo = QLabel(titulo)
-        label_titulo.setStyleSheet("font-size: 15px; font-weight: bold;")
+        label_titulo.setStyleSheet("font-size: 15px; font-weight: bold; color: white;")
         layout.addWidget(label_titulo)
         label_valor = QLabel(str(valor))
         label_valor.setStyleSheet("font-size: 32px; font-weight: bold; margin-top: 5px;")

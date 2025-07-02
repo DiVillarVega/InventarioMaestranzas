@@ -110,7 +110,7 @@ class DashboardWindow(QWidget):
         self.busqueda.setPlaceholderText("Buscar...")
         self.busqueda.setFixedWidth(280)
         self.busqueda.setStyleSheet(
-            f"background: white; border-radius: 7px; padding: 10px 16px; font-family: {FUENTE}; font-size: 16px;"
+            f"background: white; color: black; border-radius: 7px; padding: 10px 16px; font-family: {FUENTE}; font-size: 16px;"
         )
         self.busqueda.textChanged.connect(self.buscar_en_modulo_actual)
         barra_layout.addWidget(self.busqueda)

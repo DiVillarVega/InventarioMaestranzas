@@ -4,10 +4,43 @@ from PyQt6.QtWidgets import (
 )
 from modelos.ordenes_compra_detalle import obtener_detalle_orden, agregar_item_orden, eliminar_item_orden
 from modelos.piezas import obtener_todas_piezas
+from estilos import estilo_titulo, estilo_boton_general
 
 class DetalleOrdenDialog(QDialog):
     def __init__(self, orden_id, parent=None):
         super().__init__(parent)
+        self.setAutoFillBackground(True)
+        self.setStyleSheet("""
+            QDialog {
+                background-color: #16202b;
+                color: white;
+                font-family: Segoe UI;
+            }
+            QLabel {
+                color: white;
+            }
+            QLineEdit, QComboBox, QTextEdit, QSpinBox, QDoubleSpinBox {
+                background-color: #2c3a44;
+                color: white;
+                border: 1px solid #555;
+                border-radius: 4px;
+                padding: 4px;
+            }
+            QPushButton {
+                background-color: #ba846c;
+                color: white;
+                font-weight: bold;
+                border-radius: 6px;
+                padding: 5px 15px;
+                min-width: 80px;
+            }
+            QPushButton:hover {
+                background-color: #a46f5c;
+            }
+            QPushButton:pressed {
+                background-color: #8e5f50;
+            }
+        """)        
         self.setWindowTitle("Agregar ítem a la orden")
         layout = QFormLayout()
 
@@ -55,14 +88,16 @@ class DetalleOrdenWidget(QWidget):
         layout = QVBoxLayout()
 
         titulo = QLabel("Detalle de la Orden")
-        titulo.setStyleSheet("font-size: 18px;")
+        titulo.setStyleSheet("font-size: 18px; color: white; font-weight: bold;")
         layout.addWidget(titulo)
 
         btns = QHBoxLayout()
         self.btn_agregar = QPushButton("Agregar ítem")
+        self.btn_agregar.setStyleSheet(estilo_boton_general)        
         self.btn_agregar.clicked.connect(self.alta_item)
         btns.addWidget(self.btn_agregar)
         self.btn_eliminar = QPushButton("Eliminar ítem seleccionado")
+        self.btn_eliminar.setStyleSheet(estilo_boton_general)   
         self.btn_eliminar.clicked.connect(self.eliminar_item)
         btns.addWidget(self.btn_eliminar)
         layout.addLayout(btns)

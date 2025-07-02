@@ -7,10 +7,43 @@ from modelos.lotes import obtener_lotes, agregar_lote, editar_lote, eliminar_lot
 from modelos.movimientos import obtener_piezas_id_nombre
 from PyQt6.QtCore import QDate
 from vistas.tabla_estilizada import TablaEstilizada
+from estilos import estilo_titulo, estilo_boton_general
 
 class LoteDialog(QDialog):
     def __init__(self, parent=None, lote=None):
         super().__init__(parent)
+        self.setAutoFillBackground(True)
+        self.setStyleSheet("""
+            QDialog {
+                background-color: #16202b;
+                color: white;
+                font-family: Segoe UI;
+            }
+            QLabel {
+                color: white;
+            }
+            QLineEdit, QComboBox, QTextEdit, QSpinBox, QDoubleSpinBox {
+                background-color: #2c3a44;
+                color: white;
+                border: 1px solid #555;
+                border-radius: 4px;
+                padding: 4px;
+            }
+            QPushButton {
+                background-color: #ba846c;
+                color: white;
+                font-weight: bold;
+                border-radius: 6px;
+                padding: 5px 15px;
+                min-width: 80px;
+            }
+            QPushButton:hover {
+                background-color: #a46f5c;
+            }
+            QPushButton:pressed {
+                background-color: #8e5f50;
+            }
+        """)        
         self.setWindowTitle("Alta/Edición de Lote")
         layout = QFormLayout()
 
@@ -97,17 +130,20 @@ class LotesWidget(QWidget):
         layout = QVBoxLayout()
 
         titulo = QLabel("Gestión de Lotes")
-        titulo.setStyleSheet("font-size: 18px;")
+        titulo.setStyleSheet("font-size: 18px; color: white; font-weight: bold;")
         layout.addWidget(titulo)
 
         btns = QHBoxLayout()
         self.btn_nuevo = QPushButton("Agregar lote")
+        self.btn_nuevo.setStyleSheet(estilo_boton_general)
         self.btn_nuevo.clicked.connect(self.alta_lote)
         btns.addWidget(self.btn_nuevo)
         self.btn_editar = QPushButton("Editar lote seleccionado")
+        self.btn_editar.setStyleSheet(estilo_boton_general)
         self.btn_editar.clicked.connect(self.editar_lote)
         btns.addWidget(self.btn_editar)
         self.btn_eliminar = QPushButton("Eliminar lote seleccionado")
+        self.btn_eliminar.setStyleSheet(estilo_boton_general)
         self.btn_eliminar.clicked.connect(self.eliminar_lote)
         btns.addWidget(self.btn_eliminar)
         layout.addLayout(btns)
