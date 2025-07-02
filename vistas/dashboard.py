@@ -420,13 +420,17 @@ class DashboardWindow(QWidget):
 
     def show_notifications(self):
         bajos_stock = []
+        proximos_vencimientos = []
         try:
             conn = get_connection()
             if conn:
                 cur = conn.cursor()
+                fecha_limite = datetime.now().date() + timedelta(days=10)
                 # Consulta stock bajo
                 cur.execute("SELECT nombre, stock_actual FROM piezas WHERE stock_actual < 10")
                 bajos_stock = cur.fetchall()
+                cur.execute("SELECT codigo_lote, fecha_vencimiento FROM lotes WHERE fecha_vencimiento <= %s", (fecha_limite,))
+                proximos_vencimientos = cur.fetchall()
                 conn.close()
         except Exception as e:
             print(f"Error al conectar con la base de datos: {e}")
@@ -435,7 +439,7 @@ class DashboardWindow(QWidget):
         dialog.setWindowTitle("Notificaciones")
         layout = QVBoxLayout(dialog)
 
-        if bajos_stock:
+        if bajos_stock or proximos_vencimientos:
             scroll = QScrollArea()
             scroll.setWidgetResizable(True)
             content = QWidget()
@@ -445,6 +449,10 @@ class DashboardWindow(QWidget):
                 lbl = QLabel(f"Pieza '{nombre}' con stock bajo: {stock}")
                 lbl.setWordWrap(True)
                 v.addWidget(lbl)
+            for nombre, fecha in proximos_vencimientos:
+                lbl = QLabel(f"Pieza '{nombre}' próxima a vencer el: {fecha}")
+                lbl.setWordWrap(True)
+                v.addWidget(lbl)
             content.setLayout(v)
             scroll.setWidget(content)
             layout.addWidget(scroll)
@@ -452,7 +460,7 @@ class DashboardWindow(QWidget):
             lbl = QLabel("No hay notificaciones")
             lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
             layout.addWidget(lbl)
-
+        
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok)
         buttons.accepted.connect(dialog.accept)
         layout.addWidget(buttons)

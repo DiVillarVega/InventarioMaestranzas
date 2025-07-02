@@ -1,3 +1,20 @@
+-- Orden inverso al de creación, por dependencias
+DROP TABLE IF EXISTS respaldos CASCADE;
+DROP TABLE IF EXISTS ordenes_compra_detalle CASCADE;
+DROP TABLE IF EXISTS ordenes_compra CASCADE;
+DROP TABLE IF EXISTS historial_compras CASCADE;
+DROP TABLE IF EXISTS proveedores CASCADE;
+DROP TABLE IF EXISTS kits_piezas CASCADE;
+DROP TABLE IF EXISTS kits CASCADE;
+DROP TABLE IF EXISTS lotes CASCADE;
+DROP TABLE IF EXISTS movimientos CASCADE;
+DROP TABLE IF EXISTS piezas CASCADE;
+DROP TABLE IF EXISTS etiquetas CASCADE;
+DROP TABLE IF EXISTS categorias CASCADE;
+DROP TABLE IF EXISTS ubicaciones CASCADE;
+DROP TABLE IF EXISTS trabajadores CASCADE;
+DROP TABLE IF EXISTS clientes CASCADE;
+
 -- Tabla de trabajadores (usuarios internos)
 CREATE TABLE trabajadores (
     id SERIAL PRIMARY KEY,
