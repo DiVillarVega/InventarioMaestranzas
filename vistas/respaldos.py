@@ -4,28 +4,9 @@ from PyQt6.QtWidgets import (
 )
 from modelos.respaldos import obtener_respaldos, agregar_respaldo, eliminar_respaldo
 from vistas.tabla_estilizada import TablaEstilizada
-
-class AltaRespaldoDialog(QDialog):
-    def __init__(self, user_id, parent=None):
-        super().__init__(parent)
-        self.setWindowTitle("Registrar respaldo")
-        layout = QFormLayout()
-        self.input_ruta = QLineEdit()
-        layout.addRow("Ruta archivo:", self.input_ruta)
-
-        btns = QHBoxLayout()
-        self.btn_ok = QPushButton("Guardar")
-        self.btn_cancel = QPushButton("Cancelar")
-        btns.addWidget(self.btn_ok)
-        btns.addWidget(self.btn_cancel)
-        layout.addRow(btns)
-        self.setLayout(layout)
-        self.btn_ok.clicked.connect(self.accept)
-        self.btn_cancel.clicked.connect(self.reject)
-        self.user_id = user_id
-
-    def datos(self):
-        return self.user_id, self.input_ruta.text().strip()
+from PyQt6.QtWidgets import QFileDialog
+from modelos.respaldos import obtener_respaldos, agregar_respaldo, eliminar_respaldo, generar_respaldo_json
+import json
 
 class RespaldosWidget(QWidget):
     def __init__(self, user_id):
@@ -74,17 +55,30 @@ class RespaldosWidget(QWidget):
             self.tabla.setItem(row_pos, 3, QTableWidgetItem(r["ruta_archivo"]))
 
     def alta_respaldo(self):
-        dlg = AltaRespaldoDialog(self.user_id, self)
-        if dlg.exec():
-            user_id, ruta = dlg.datos()
-            if not ruta:
-                QMessageBox.warning(self, "Campo obligatorio", "Debes indicar la ruta del respaldo.")
-                return
-            ok, err = agregar_respaldo(user_id, ruta)
-            if ok:
-                self.cargar_respaldos()
-            else:
-                QMessageBox.critical(self, "Error", f"No se pudo registrar el respaldo.\nDetalles: {err}")
+        datos_json, err = generar_respaldo_json()
+        if err:
+            QMessageBox.critical(self, "Error", err)
+            return
+
+        # Mostrar diálogo para elegir ubicación del archivo
+        ruta_archivo, _ = QFileDialog.getSaveFileName(self, "Guardar respaldo", "", "Archivos JSON (*.json)")
+        if not ruta_archivo:
+            return
+
+        try:
+            with open(ruta_archivo, "w", encoding="utf-8") as f:
+                json.dump(datos_json, f, indent=4, ensure_ascii=False)
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"No se pudo guardar el archivo.\nDetalles: {e}")
+            return
+
+        ok, err = agregar_respaldo(self.user_id, ruta_archivo)
+        if ok:
+            QMessageBox.information(self, "Éxito", "Respaldo registrado correctamente.")
+            self.cargar_respaldos()
+        else:
+            QMessageBox.critical(self, "Error", f"No se pudo registrar el respaldo.\nDetalles: {err}")
+
 
     def eliminar_respaldo(self):
         row = self.tabla.currentRow()
