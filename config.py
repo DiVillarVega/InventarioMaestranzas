@@ -33,6 +33,7 @@ ROLES_PANTALLAS = {
     'logistica':        ['dashboard', 'movimientos', 'lotes'],
     'produccion':       ['dashboard', 'piezas'],
     'auditor':          ['dashboard', 'movimientos'],
+    'cliente':          ['dashboard', 'piezas', 'movimientos', 'orderes_compra', 'historial_compras'],
 }
 
 AUTOLOGIN = True # Cambia a False si no quieres autologin
