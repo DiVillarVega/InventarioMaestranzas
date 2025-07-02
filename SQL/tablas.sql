@@ -44,6 +44,7 @@ CREATE TABLE piezas (
     ubicacion TEXT,
     categoria_id INT,
     etiqueta_id INT,
+    precio NUMERIC(12,2) NOT NULL,
     CONSTRAINT fk_categoria FOREIGN KEY (categoria_id) REFERENCES categorias(id),
     CONSTRAINT fk_etiqueta FOREIGN KEY (etiqueta_id) REFERENCES etiquetas(id)
 );

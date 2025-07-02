@@ -1,9 +1,12 @@
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout,
-    QTableWidgetItem, QHeaderView, QLineEdit, QDialog, QFormLayout, QSpinBox, QMessageBox
+    QTableWidgetItem, QHeaderView, QLineEdit, QDialog, QFormLayout,
+    QSpinBox, QDoubleSpinBox, QComboBox, QMessageBox
 )
 from modelos.piezas import obtener_todas_piezas, agregar_pieza, editar_pieza, eliminar_pieza
 from vistas.tabla_estilizada import TablaEstilizada
+from modelos.categorias import obtener_categorias
+from modelos.etiquetas import obtener_etiquetas
 
 class AltaPiezaDialog(QDialog):
     def __init__(self, parent=None, pieza=None):
@@ -18,12 +21,27 @@ class AltaPiezaDialog(QDialog):
         self.input_stock.setMinimum(0)
         self.input_stock.setMaximum(100000)
         self.input_ubic = QLineEdit()
+        self.input_precio = QDoubleSpinBox()
+        self.input_precio.setMaximum(100000000)
+        self.input_precio.setDecimals(2)
+
+        self.input_categoria = QComboBox()
+        for cat in obtener_categorias():
+            self.input_categoria.addItem(cat["nombre"], cat["id"])
+
+        self.input_etiqueta = QComboBox()
+        for eti in obtener_etiquetas():
+            self.input_etiqueta.addItem(eti["nombre"], eti["id"])
+
 
         layout.addRow("Código:", self.input_codigo)
         layout.addRow("Nombre:", self.input_nombre)
         layout.addRow("Descripción:", self.input_desc)
         layout.addRow("Stock:", self.input_stock)
         layout.addRow("Ubicación:", self.input_ubic)
+        layout.addRow("Precio:", self.input_precio)
+        layout.addRow("Categoría:", self.input_categoria)
+        layout.addRow("Etiqueta:", self.input_etiqueta)
 
         btns = QHBoxLayout()
         self.btn_ok = QPushButton("Guardar")
@@ -52,7 +70,10 @@ class AltaPiezaDialog(QDialog):
             self.input_nombre.text(),
             self.input_desc.text(),
             self.input_stock.value(),
-            self.input_ubic.text()
+            self.input_ubic.text(),
+            self.input_precio.value(),
+            self.input_categoria.currentData(),
+            self.input_etiqueta.currentData()
         )
 
 class PiezasWidget(QWidget):
@@ -84,8 +105,10 @@ class PiezasWidget(QWidget):
         self.piezas_todas = []
 
         # Tabla estilizada
-        self.tabla = TablaEstilizada(0, 6)
-        self.tabla.setHorizontalHeaderLabels(["ID", "Código", "Nombre", "Descripción", "Stock", "Ubicación"])
+        self.tabla = TablaEstilizada(0, 9)
+        self.tabla.setHorizontalHeaderLabels([
+            "ID", "Código", "Nombre", "Descripción", "Stock", "Ubicación", "Precio", "Categoría", "Etiqueta"
+        ])
         self.tabla.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         layout.addWidget(self.tabla)
         
@@ -107,15 +130,18 @@ class PiezasWidget(QWidget):
             self.tabla.setItem(row_pos, 3, QTableWidgetItem(pieza["descripcion"] or ""))
             self.tabla.setItem(row_pos, 4, QTableWidgetItem(str(pieza["stock"])))
             self.tabla.setItem(row_pos, 5, QTableWidgetItem(pieza["ubicacion"] or ""))
+            self.tabla.setItem(row_pos, 6, QTableWidgetItem(f"${pieza['precio']:.2f}"))
+            self.tabla.setItem(row_pos, 7, QTableWidgetItem(pieza["categoria"] or ""))
+            self.tabla.setItem(row_pos, 8, QTableWidgetItem(pieza["etiqueta"] or ""))
 
     def alta_pieza(self):
         dlg = AltaPiezaDialog(self)
         if dlg.exec():
-            codigo, nombre, desc, stock, ubicacion = dlg.datos()
+            codigo, nombre, desc, stock, ubicacion, precio, categoria_id, etiqueta_id = dlg.datos()
             if not codigo or not nombre or stock is None:
                 QMessageBox.warning(self, "Campos obligatorios", "Código, nombre y stock son obligatorios.")
                 return
-            ok, err = agregar_pieza(codigo, nombre, desc, stock, ubicacion)
+            ok, err = agregar_pieza(codigo, nombre, desc, stock, ubicacion, precio, categoria_id, etiqueta_id)
             if ok:
                 self.cargar_piezas()
                 QMessageBox.information(self, "Éxito", "La pieza fue registrada correctamente.")
