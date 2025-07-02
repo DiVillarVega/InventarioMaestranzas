@@ -11,4 +11,4 @@ try:
     print("¡Conexión exitosa!")
     conn.close()
 except Exception as e:
-    print("Error:", e)
+    print("Error:", repr(e))

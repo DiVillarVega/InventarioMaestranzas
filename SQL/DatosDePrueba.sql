@@ -50,11 +50,11 @@ INSERT INTO proveedores (nombre, razon_social, rut, direccion, telefono, correo,
 ('Proveedor Eléctrico Ltda', 'Proveedor Eléctrico Ltda', '77.987.654-3', 'Av. Corrientes 456', '998877665', 'ventas@electric.com', 'Cables, Bombillas', 'Contado');
 
 -- PIEZAS (IDs: 1..4)
-INSERT INTO piezas (codigo, nombre, descripcion, stock_actual, ubicacion, categoria_id, etiqueta_id) VALUES
-('PZ001', 'Rodamiento Z', 'Rodamiento alta carga', 50, 'Bodega 1, Estante A', 1, 1),
-('PZ002', 'Cilindro hidráulico', 'Cilindro estándar', 20, 'Bodega 2, Estante B', 1, 2),
-('PZ003', 'Bombilla LED', 'Bombilla de bajo consumo', 100, 'Bodega 3, Estante C', 2, 2),
-('PZ004', 'Llave inglesa', 'Herramienta manual', 35, 'Bodega 1, Estante D', 3, 3);
+INSERT INTO piezas (codigo, nombre, descripcion, stock_actual, ubicacion, precio, categoria_id, etiqueta_id) VALUES
+('PZ001', 'Rodamiento Z', 'Rodamiento alta carga', 50, 'Bodega 1, Estante A', 20000, 1, 1),
+('PZ002', 'Cilindro hidráulico', 'Cilindro estándar', 20, 'Bodega 2, Estante B', 100000, 1, 2),
+('PZ003', 'Bombilla LED', 'Bombilla de bajo consumo', 100, 'Bodega 3, Estante C', 5000, 2, 2),
+('PZ004', 'Llave inglesa', 'Herramienta manual', 35, 'Bodega 1, Estante D', 7500, 3, 3);
 
 -- LOTES (IDs: 1..3)
 INSERT INTO lotes (pieza_id, codigo_lote, fecha_vencimiento, cantidad) VALUES

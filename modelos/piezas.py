@@ -7,9 +7,12 @@ def obtener_todas_piezas():
     if conn:
         cur = conn.cursor()
         cur.execute("""
-            SELECT id, codigo, nombre, descripcion, stock_actual, ubicacion
-            FROM piezas
-            ORDER BY id DESC
+            SELECT p.id, p.codigo, p.nombre, p.descripcion, p.stock_actual, p.ubicacion,
+                   p.precio, c.nombre AS categoria, e.nombre AS etiqueta
+            FROM piezas p
+            LEFT JOIN categorias c ON p.categoria_id = c.id
+            LEFT JOIN etiquetas e ON p.etiqueta_id = e.id
+            ORDER BY p.id DESC
         """)
         for row in cur.fetchall():
             piezas.append({
@@ -19,18 +22,21 @@ def obtener_todas_piezas():
                 "descripcion": row[3],
                 "stock": row[4],
                 "ubicacion": row[5],
+                "precio": row[6],
+                "categoria": row[7],
+                "etiqueta": row[8]
             })
         conn.close()
     return piezas
 
-def agregar_pieza(codigo, nombre, desc, stock, ubicacion):
+def agregar_pieza(codigo, nombre, desc, stock, ubicacion, precio, categoria_id, etiqueta_id):
     conn = get_connection()
     if conn:
         try:
             cur = conn.cursor()
             cur.execute(
-                "INSERT INTO piezas (codigo, nombre, descripcion, stock_actual, ubicacion) VALUES (%s, %s, %s, %s, %s)",
-                (codigo, nombre, desc, stock, ubicacion)
+                "INSERT INTO piezas (codigo, nombre, descripcion, stock_actual, ubicacion, precio, categoria_id, etiqueta_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)",
+                (codigo, nombre, desc, stock, ubicacion, precio, categoria_id, etiqueta_id)
             )
             conn.commit()
             conn.close()
@@ -61,5 +67,7 @@ def eliminar_pieza(id_pieza):
         cur.execute("DELETE FROM piezas WHERE id=%s", (id_pieza,))
         conn.commit()
         conn.close()
+
+        
 
 
