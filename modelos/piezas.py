@@ -1,5 +1,6 @@
 # modelos/piezas.py
 from conexion import get_connection
+import pandas as pd
 
 def obtener_todas_piezas():
     conn = get_connection()
@@ -84,6 +85,39 @@ def eliminar_pieza(id_pieza):
         conn.commit()
         conn.close()
 
-        
+import pandas as pd
+from conexion import get_connection
 
+def exportar_reporte_excel(ruta_archivo: str) -> bool:
+    """
+    Genera un archivo Excel con todas las piezas ordenadas alfabéticamente por nombre.
+
+    :param ruta_archivo: Ruta completa donde se guardará el archivo (ej: 'reporte.xlsx')
+    :return: True si tuvo éxito, False si hubo un error
+    """
+    try:
+        conn = get_connection()
+        df = pd.read_sql_query("""
+            SELECT p.id,
+                   p.codigo,
+                   p.nombre,
+                   p.descripcion,
+                   p.stock_actual AS stock,
+                   p.ubicacion,
+                   p.precio,
+                   c.nombre AS categoria,
+                   e.nombre AS etiqueta
+            FROM piezas p
+            LEFT JOIN categorias c ON p.categoria_id = c.id
+            LEFT JOIN etiquetas e ON p.etiqueta_id = e.id
+            ORDER BY p.nombre ASC
+        """, conn)
+        conn.close()
+
+        df.to_excel(ruta_archivo, index=False)
+        return True
+
+    except Exception as e:
+        print(f"Error al exportar reporte Excel: {e}")
+        return False
 

@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QPushButton, QHBoxLayout,
     QTableWidgetItem, QHeaderView, QLineEdit, QDialog, QFormLayout,
-    QSpinBox, QDoubleSpinBox, QComboBox, QMessageBox
+    QSpinBox, QDoubleSpinBox, QComboBox, QMessageBox, QFileDialog  
 )
 from modelos.piezas import obtener_todas_piezas, agregar_pieza, editar_pieza, eliminar_pieza
 from vistas.tabla_estilizada import TablaEstilizada
@@ -129,6 +129,7 @@ class PiezasWidget(QWidget):
         titulo.setStyleSheet("font-size: 18px; color: white; font-weight: bold;")
         layout.addWidget(titulo)
 
+
         btns = QHBoxLayout()
         self.btn_nueva = QPushButton("Agregar nueva pieza")
         self.btn_nueva.setStyleSheet(estilo_boton_general)
@@ -144,6 +145,11 @@ class PiezasWidget(QWidget):
         self.btn_eliminar.setStyleSheet(estilo_boton_general)
         self.btn_eliminar.clicked.connect(self.eliminar_pieza)
         btns.addWidget(self.btn_eliminar)
+
+        self.btn_exportar = QPushButton("Exportar a Excel")
+        self.btn_exportar.setStyleSheet(estilo_boton_general)
+        self.btn_exportar.clicked.connect(self.exportar_excel)
+        btns.addWidget(self.btn_exportar)
 
         layout.addLayout(btns)
 
@@ -240,3 +246,14 @@ class PiezasWidget(QWidget):
             or texto in (p["ubicacion"] or "").lower()
         ]
         self.mostrar_piezas(piezas_filtradas)
+
+    def exportar_excel(self):
+        ruta, _ = QFileDialog.getSaveFileName(self, "Guardar reporte", "piezas.xlsx", "Excel Files (*.xlsx)")
+        if not ruta:
+            return
+        from modelos.piezas import exportar_reporte_excel
+        ok = exportar_reporte_excel(ruta)
+        if ok:
+            QMessageBox.information(self, "Éxito", f"Reporte guardado en:\n{ruta}")
+        else:
+            QMessageBox.critical(self, "Error", "No se pudo generar el reporte.")
