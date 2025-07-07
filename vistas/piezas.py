@@ -170,6 +170,10 @@ class PiezasWidget(QWidget):
     def cargar_piezas(self):
         self.piezas_todas = obtener_todas_piezas()
         self.mostrar_piezas(self.piezas_todas)
+    
+    def showEvent(self, event):
+        self.cargar_piezas()  # Refresca siempre que la ventana se muestre o reciba foco
+        super().showEvent(event)
 
     def mostrar_piezas(self, piezas):
         self.tabla.setRowCount(0)
